@@ -23,7 +23,6 @@ def hello(request: Request):
         request=request
     )
 
-
 @router.get("/", response_class=HTMLResponse)
 def main(request: Request):
     return templates.TemplateResponse(
