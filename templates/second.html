@@ -2,8 +2,8 @@
 <html lang="en" dir="ltr">
 
 <head>
-  <title>Ms. 메이크</title>
-  <meta name="description" content="...">
+  <title>질문하기 - Ms. 메이크</title>
+  <meta name="description" content="Ms. 메이크에게 메이크업 관련 질문을 해보세요.">
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -19,18 +19,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
 
   <style>
-    .card-body {
-      padding: 0;
+    .question-section {
+      text-align: center;
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-radius: 10px;
+      margin-top: 20px;
     }
-    .card img {
-      object-fit: cover;
-      height: 100%;
-      width: 100%;
-    }
-    .card a {
-      display: block;
-      width: 100%;
-      height: 100%;
+    .question-section img {
+      width: 100%; /* 이미지를 더 크게 조정 */
+      max-width: 400px;
+      margin-bottom: 20px; /* 이미지 아래에 간격 추가 */
     }
     .header-section {
       text-align: center;
@@ -46,6 +45,20 @@
       width: 100%;
       margin: 10px 0;
     }
+    .question-section p,
+    .question-section li {
+      color: #808080; /* 회색 */
+      font-size: 1.1em;
+      margin-top: 0; /* p 태그 상단 마진 제거 */
+    }
+    .question-section ul {
+      list-style-type: none;
+      padding: 0;
+      margin-top: 10px;
+    }
+    .question-section li {
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 
@@ -56,34 +69,21 @@
       <h2>화해</h2>
       <div class="divider"></div>
     </div>
-    
-    <!-- Profile Section -->
-    <div class="text-center mb-4">
-      <img src="/static/images/찡긋 메이크.jpg" alt="Ms. 메이크" class="img-fluid rounded-circle" style="max-width: 200px;">
-      <h1 class="mt-2">Ms. 메이크</h1>
-    </div>
-    
-    <!-- Content Cards -->
-    <div class="card mb-3">
-      <div class="row g-0">
-        <div class="col-md-4 d-flex align-items-center justify-content-center">
-          <a href="/main/second">
-            <img src="/static/images/나만의 메이크업.jpg" class="img-fluid rounded-start" alt="나만의 메이크업">
-          </a>
-        </div>
-        <div class="col-md-8">
-        </div>
-      </div>
-    </div>
 
-    <div class="card mb-3">
-      <div class="row g-0">
-        <div class="col-md-4 d-flex align-items-center justify-content-center">
-          <img src="/static/images/특별한 메이크업.jpg" class="img-fluid rounded-start" alt="특별한 메이크업">
-        </div>
-        <div class="col-md-8">
-        </div>
-      </div>
+    <!-- Image Section -->
+    <div class="text-center">
+      <img src="/static/images/화장품 핑크 배경.jpg" alt="메이크업 제품" class="img-fluid rounded">
+    </div>
+    
+    <!-- Question Section -->
+    <div class="question-section">
+      <img src="/static/images/질문하기.jpg" alt="Ms. 메이크 아바타">
+      <p>메이크업 아티스트 Ms. 메이크에게 물어보세요.</p>
+      <ul>
+        <li>“분홍색 섀도우 위치 어딨어?”</li>
+        <li>“섀도우 색 설명해줘”</li>
+        <li>“오른쪽 첫번째 섀도우 색은 뭐야?”</li>
+      </ul>
     </div>
   </div>
 

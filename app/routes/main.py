@@ -15,17 +15,30 @@ class Query(BaseModel):
     model_type: str
     query: str
 
-
-@router.get("/main")
-def hello(request: Request):
-    return templates.TemplateResponse(
-        name="back_test.html",
-        request=request
-    )
-
 @router.get("/", response_class=HTMLResponse)
 def main(request: Request):
     return templates.TemplateResponse(
         name="main.html",
+        request=request
+    )
+
+@router.get("/main")
+def hello(request: Request):
+    return templates.TemplateResponse(
+        name="second.html",
+        request=request
+    )
+
+@router.get("/main/second")
+def test(request: Request):
+    return templates.TemplateResponse(
+        name="second.html",
+        request=request
+    )
+
+@router.get("/main/test")
+def test(request: Request):
+    return templates.TemplateResponse(
+        name="test.html",
         request=request
     )
