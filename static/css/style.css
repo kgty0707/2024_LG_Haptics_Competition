@@ -1,0 +1,22 @@
+.scrollable-list {
+  max-height: 100%;
+  overflow-y: auto;
+}
+.fixed-height {
+  height: 600px; /* Set the desired fixed height */
+}
+.flex-fill-height {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.flex-fill-height .card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.flex-fill-height .list-group {
+  flex: 1;
+  overflow-y: auto;
+}
