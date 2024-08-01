@@ -81,13 +81,8 @@
 
     // Check if the browser supports getUserMedia for video
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-<<<<<<< HEAD
       navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then(function(stream) {
-=======
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(function (stream) {
->>>>>>> 98cf062fe0a0e2b4c98bbad5baac8068abb3d84a
           video.srcObject = stream;
 
           let mediaRecorder;
@@ -124,40 +119,12 @@
             }
           });
         })
-<<<<<<< HEAD
         .catch(function(err) {
           console.error("Error accessing the camera or microphone: " + err);
-=======
-        .catch(function (err) {
-          console.error("Error accessing the camera: " + err);
->>>>>>> 98cf062fe0a0e2b4c98bbad5baac8068abb3d84a
         });
     } else {
       alert('Your browser does not support accessing the camera or microphone.');
     }
-<<<<<<< HEAD
-=======
-
-    // Detect device orientation change
-    window.addEventListener('orientationchange', function () {
-      let transformValue = '';
-      switch (window.orientation) {
-        case 0:
-          transformValue = 'scaleX(-1) rotate(0deg)';
-          break;
-        case 90:
-          transformValue = 'scaleX(-1) rotate(-90deg)';
-          break;
-        case -90:
-          transformValue = 'scaleX(-1) rotate(90deg)';
-          break;
-        case 180:
-          transformValue = 'scaleX(-1) rotate(180deg)';
-          break;
-      }
-      video.style.transform = transformValue;
-    });
->>>>>>> 98cf062fe0a0e2b4c98bbad5baac8068abb3d84a
   </script>
 </body>
 
