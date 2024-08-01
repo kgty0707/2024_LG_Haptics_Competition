@@ -2,8 +2,8 @@
 <html lang="en" dir="ltr">
 
 <head>
-  <title>Ms. 메이크</title>
-  <meta name="description" content="...">
+  <title>질문하기 - Ms. 메이크</title>
+  <meta name="description" content="Ms. 메이크에게 메이크업 관련 질문을 해보세요.">
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -17,19 +17,17 @@
   <!-- preloading icon font is helping to speed up a little bit -->
   <link rel="stylesheet" href="/static/assets/css/style.bundle.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
-
   <style>
-    .card-body {
-      padding: 0;
-    }
-    .card img {
-      object-fit: cover;
-      height: 100%;
-      width: 100%;
+    /* 좌우 반전 및 기본 비디오 스타일 */
+    #video {
+      transform: scaleX(-1); /* 좌우 반전 */
+      width: 100%; /* 반응형 크기 조정 */
+      max-width: 400px; /* 최대 너비 제한 */
+      height: auto; /* 높이 자동 조정 */
+      margin: 0 auto; /* 가운데 정렬 */
     }
     .header-section {
-      text-align: center;
-      margin-bottom: 20px;
+      text-align: center; /* 중앙 정렬 */
     }
     .header-section h2 {
       color: #ffcee6; /* 핑크색 */
@@ -41,41 +39,41 @@
       width: 100%;
       margin: 10px 0;
     }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 
 <body>
   <div class="container mt-4">
     <!-- Header Section with Divider -->
-    <div class="header-section">
-      <h2>화해</h2>
-      <div class="divider"></div>
-    </div>
-    
-    <!-- Profile Section -->
     <div class="text-center mb-4">
-      <img src="/static/images/찡긋 메이크.jpg" alt="Ms. 메이크" class="img-fluid rounded-circle" style="max-width: 200px;">
-      <h1 class="mt-2">Ms. 메이크</h1>
-    </div>
-    
-    <!-- Content Cards -->
-    <div class="card mb-3">
-      <div class="row g-0">
-        <div class="col-md-4 d-flex align-items-center justify-content-center">
-          <img src="/static/images/나만의 메이크업.jpg" class="img-fluid rounded-start" alt="나만의 메이크업">
-        </div>
-        <div class="col-md-8">
-        </div>
+      <div class="header-section">
+        <h2>화해</h2>
+        <div class="divider"></div>
       </div>
     </div>
 
-    <div class="card mb-3">
-      <div class="row g-0">
-        <div class="col-md-4 d-flex align-items-center justify-content-center">
-          <img src="/static/images/특별한 메이크업.jpg" class="img-fluid rounded-start" alt="특별한 메이크업">
-        </div>
-        <div class="col-md-8">
-        </div>
+    <!-- Camera Section -->
+    <div class="text-center mb-4">
+      <video id="video" autoplay></video>
+      <canvas id="canvas" class="hidden"></canvas>
+    </div>
+    
+    <!-- Question Section -->
+    <div class="card p-4">
+      <div class="text-center mb-4">
+        <img id="questionImage" src="/static/images/질문하기.jpg" alt="Ms. 메이크 아바타" class="img-fluid" style="max-width: 300px;">
+      </div>
+      <div class="card-body">
+        <p class="text-muted text-center">메이크업 아티스트 Ms. 메이크에게 물어보세요.</p>
+        <ul class="list-unstyled text-muted text-center">
+          <li class="mb-2">“분홍색 섀도우 위치 어딨어?”</li>
+          <li class="mb-2">“섀도우 색 설명해줘”</li>
+          <li>“오른쪽 첫번째 섀도우 색은 뭐야?”</li>
+        </ul>
+        <p id="transcription" class="text-center">녹음된 텍스트: </p>
       </div>
     </div>
   </div>
@@ -84,6 +82,89 @@
   <script src="/static/assets/js/widgets.bundle.js"></script>
   <script src="/static/assets/js/scripts.bundle.js"></script>
   <script src="/static/js/custom.js"></script>
+  <script>
+    // JavaScript to access the user's webcam and display it in the video element
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+    let stream;
+
+    // Check if the browser supports getUserMedia for video and audio
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(function(mediaStream) {
+          stream = mediaStream;
+          video.srcObject = stream;
+
+          // Initialize mediaRecorder only when questionImage is clicked
+          document.getElementById('questionImage').addEventListener('click', () => {
+            if (!isRecording) {
+              // Start recording
+              mediaRecorder = new MediaRecorder(stream);
+              audioChunks = [];
+              mediaRecorder.start();
+              isRecording = true;
+              console.log('Recording started.');
+
+              mediaRecorder.ondataavailable = function(event) {
+                audioChunks.push(event.data);
+              };
+
+              mediaRecorder.onstop = function() {
+                console.log('Recording stopped.');
+                const audioBlob = new Blob(audioChunks, { 'type': 'audio/wav' });
+
+                // 오디오 파일을 서버로 전송하여 STT 요청
+                const formData = new FormData();
+                formData.append('file', audioBlob, 'recording.wav');
+
+                fetch('/transcribe', {
+                  method: 'POST',
+                  body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                  document.getElementById('transcription').textContent = `녹음된 텍스트: ${data.text}`;
+                })
+                .catch(error => {
+                  console.error('Error during transcription:', error);
+                });
+              };
+
+              // Capture image from video
+              captureImage();
+
+            } else {
+              // Stop recording
+              mediaRecorder.stop();
+              isRecording = false;
+              console.log('Recording stopped manually.');
+            }
+          });
+        })
+        .catch(function(err) {
+          console.error("Error accessing the camera or microphone: " + err);
+        });
+    } else {
+      alert('Your browser does not support accessing the camera or microphone.');
+    }
+
+    function captureImage() {
+      // Set canvas dimensions to video dimensions
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      // Draw the current video frame on the canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      // Get the image data URL
+      const imageUrl = canvas.toDataURL('image/png');
+      console.log('Image captured:', imageUrl);
+      // Optionally, you can use the imageUrl to display the image, download it, etc.
+    }
+  </script>
 </body>
 
 </html>
