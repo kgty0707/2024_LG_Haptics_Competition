@@ -2,9 +2,9 @@
 from ultralytics import YOLO
 
 # 모델 로드 (.pt 파일 있는 경로로 나중에 수정 )
-model = YOLO('runs\\detect\\train3\\weights\\best.pt')
+model = YOLO('./best.pt')
 
-def detection_cosmatic(iamge):
+def detection_cosmatic(image):
     '''
     Input: 이미지,
     Output: 화장품의 종류 (1, 2), 각 새도우의 바운딩 박스, 화장품의 앞 뒤 구별(?)
