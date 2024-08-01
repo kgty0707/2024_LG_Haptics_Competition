@@ -13,7 +13,7 @@ router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 class Query(BaseModel):
-    model_type: str
+    query: str
 
 # 사진 추출하는 함수 구현
 def extract_frame():

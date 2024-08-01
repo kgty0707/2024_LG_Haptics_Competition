@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+
+<head>
+    <title>{% block title %}Haptics{% endblock %}</title>
+    <meta name="description" content="...">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- speed up external res -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com/">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com/">
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link rel="preconnect" href="https://fonts.gstatic.com/">
+    <!-- preloading icon font is helping to speed up a little bit -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="/static/beta_assets/plugins/custom/fullcalendar/fullcalendar.bundle.css" rel="stylesheet"
+        type="text/css" />
+    <link href="/static/beta_assets/plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="/static/beta_assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="/static/beta_assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" rel="stylesheet">
+
+    {% block extra_styles %}{% endblock %}
+</head>
+
+<body>
+    <div class="container mt-4">
+        <!-- Header Section with Divider -->
+        <div class="text-center align-items-center position-relatice justify-content-center mb-4">
+            <img src="/static/images/알파카.gif" alt="GIF Icon" class="img-fluid" style="max-width: 50px;">
+            <span class="black-han-sans-regular fs-2qx">화해</span>
+        </div>
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Core javascripts -->
+    <script src="/static/beta_assets/plugins/global/plugins.bundle.js"></script>
+    <script src="/static/beta_assets/js/scripts.bundle.js"></script>
+    <script src="/static/beta_assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
+    <script src="/static/js/video.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/radar.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/map.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/geodata/worldLow.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/geodata/continentsLow.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/geodata/usaLow.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/geodata/worldTimeZonesLow.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/geodata/worldTimeZoneAreasLow.js"></script>
+    <script src="/static/beta_assets/plugins/custom/datatables/datatables.bundle.js"></script>
+    <script src="/static/beta_assets/js/widgets.bundle.js"></script>
+    <script src="/static/beta_assets/js/custom/widgets.js"></script>
+    <script src="/static/beta_assets/js/custom/apps/chat/chat.js"></script>
+    <script src="/static/beta_assets/js/custom/utilities/modals/users-search.js"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>
