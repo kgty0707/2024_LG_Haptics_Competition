@@ -89,7 +89,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
 
         # OpenAI Whisper API를 사용하여 음성을 텍스트로 변환
         with open("temp_audio.wav", "rb") as audio_file:
-            transcription = openai.Audio.transcribe(
+            transcription = openai.audio.transcriptions.create(
                 model="whisper-1",
                 file=audio_file,
                 response_format="text"
