@@ -2,7 +2,7 @@
 from ultralytics import YOLO
 
 # 모델 로드 (.pt 파일 있는 경로로 나중에 수정 )
-model = YOLO('./best.pt')
+model = YOLO('./app/AI/best.pt')
 
 def detection_cosmatic(image):
     '''
