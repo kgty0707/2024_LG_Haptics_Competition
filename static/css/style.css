@@ -20,3 +20,34 @@
   flex: 1;
   overflow-y: auto;
 }
+
+/* 좌우 반전 및 기본 비디오 스타일 */
+#video {
+  transform: scaleX(-1);
+  /* 좌우 반전 */
+  max-width: 100%;
+  /* 반응형 크기 조정 */
+  height: auto;
+  /* 반응형 크기 조정 */
+}
+
+.header-section h2 {
+  color: #ffcee6;
+  /* 핑크색 */
+  margin-bottom: 0;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+}
+
+.divider {
+  height: 2px;
+  background-color: #ffcee6;
+  /* 핑크색 */
+  width: 100%;
+  margin: 10px 0;
+}

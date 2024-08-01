@@ -1,13 +1,9 @@
 import os
+import time
 from dotenv import load_dotenv
-from langchain.tools import BaseTool, Tool
-from math import pi
-from typing import Union
+from langchain.tools import BaseTool
 from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
-from langchain.schema import HumanMessage, SystemMessage
-from langchain.memory import ConversationBufferWindowMemory
-from langchain.agents.agent_types import AgentType
 from langchain.agents import AgentExecutor, create_react_agent
 from app.routes.search import search_by
 
@@ -15,20 +11,59 @@ load_dotenv()
 
 api_key = os.getenv('GPT_API_KEY')
 
-def generate_response(model_result, query):
-    info = search_by(model_result['palette_num'])
-    response = agent({"input": f"{query}"})
-    return response["output"]
+if not api_key:
+    raise ValueError("API key is missing. Please set GPT_API_KEY in the environment variables.")
+
+llm = ChatOpenAI(
+    openai_api_key=api_key,
+    temperature=0,
+    model_name='gpt-3.5-turbo'
+)
 
 class HandModelTool(BaseTool):
-    name = ""
-    description = ""
-    ...
+    '''
+    손 위치 인식, 원본 이미지와 손 가락 위치 비교 해야 할 때 사용
+    example: 지금 내가 가르키고 있는 색 무슨 색이야?
+    '''
+    name = "Hand Model Tool"
+    description = "This is a hand model tool."
+
+    def hand_model():
+        '''
+        손 위치 인식하고 섀도우 바운딩 박스랑 비교하기
+        섀도우 바운딩 박스에 몇번째랑 닿아 있는지 구하는 알고리즘.
+        -> 생각상 바운딩 박스 for문으로 돌면서 해당하는 위치 추출하는 방식으로 해야할 듯
+        '''
+        ...
+
+    def _run(self, text: str) -> str:
+        return "Hand model tool executed."
+
+    def _arun(self, text: str):
+        raise NotImplementedError("This tool does not support async")
 
 class HapticGuidanceTool(BaseTool):
-    name = ""
-    description = ""
-    ...
+    '''
+    HapticGuidanceTool을 선택하면 현재 120초간 멈춤
+    '''
+    name = "Haptic Guidance Tool"
+    description = "Haptic Guidance Tool"
+
+    def haptic_guidance():
+        '''
+        손 위치 모델, 섀도우 위치 예측 모델 프레임 마다 비교 실행.
+        알고리즘 구현은 def hand_model과 비슷할 듯.
+
+        추가적으로 위치에 따라 firebase에 진동 전송하는 로직 필요함.
+        '''
+        ...
+
+    def _run(self, text: str) -> str:
+        time.sleep(120)
+        return "120초간의 대기가 완료되었습니다."
+
+    def _arun(self, text: str):
+        raise NotImplementedError("This tool does not support async")
 
 class AddHeartTool(BaseTool):
     name = "Add Heart Tool"
@@ -40,39 +75,47 @@ class AddHeartTool(BaseTool):
     def _arun(self, text: str):
         raise NotImplementedError("This tool does not support async")
 
-# Initialize LLM
-llm = ChatOpenAI(
-    openai_api_key=api_key,
-    temperature=0,
-    model_name='gpt-3.5-turbo'
-)
+def generate_response(model_result, query):
+    info = search_by(model_result['palette_num'])
 
-info = "리얼 아이 팔레트는 활용도 높은 데일리 컬러와 영롱한 글리터 조합으로 매일 다채로운 메이크업을 쉽게 완성할 수 있는 제품입니다. 5호 애프리콧 미는 뽀얗게 물드는 살구결 생기를 주는 #살구팔레트로, 스틸(화려한 글리터), 애프리콧 하트(맑은 애프리콧), 기도(여리한 살구 음영), 팔로우(피치 톤 베이스), 영&리치(코랄 글리터), 피넛(코랄 브라운), 리액션(빈티 브라운) 등의 컬러로 구성되어 있어, 눈가를 정돈하고 다양한 메이크업 룩을 완성할 수 있습니다."
+    prompt_template = generate_template(info)
+    print("Prompt Template:", prompt_template)
 
-template = f'''ou are an assistant who helps explain cosmetics for the blind. When you ask questions about colors or cosmetics, kindly explain them in Korean.:
+    tools = [AddHeartTool(), HapticGuidanceTool()]
 
-{{tools}}
+    agent = create_react_agent(llm, tools, prompt_template)
 
-The action to take of [{{tool_names}}]
-Detailed description of cosmetics: {info}
+    agent_executor = AgentExecutor(
+        agent=agent,
+        tools=tools,
+        verbose=True,
+        return_intermediate_steps=True,
+        handle_parsing_errors=True,
+        max_iterations=1,
+    )
 
-Question: {{input}}
-Thought:{{agent_scratchpad}}'''
+    response = agent_executor.invoke({"input": f"{query}"})
+    print(response)
+    return response["output"]
 
-prompt = PromptTemplate.from_template(template)
+def generate_template(info):
+    template = f'''You are an assistant who helps explain cosmetics for the blind. When you ask questions about colors or cosmetics, kindly explain them in Korean.
 
-# Initialize agent with tools and custom chain
-tools = [AddHeartTool()]
+    You have access to the following tools:
+    {{tools}}
 
-agent = create_react_agent(llm, tools, prompt)
+    Detailed description of cosmetics: {info}
 
-agent_executor = AgentExecutor(
-    agent=agent,
-    tools=tools,
-    verbose=True,
-    return_intermediate_steps=True,
-    handle_parsing_errors=True,
-    max_iterations=2,
-)
-# Test the agent with a sample input
-# response = agent_executor.invoke({"input": "화장품의 첫번째 섀도우는 무슨 색이야? 텍스트에 하트도 붙여줘"})
+    Question: {{input}}
+    Thought: {{agent_scratchpad}}
+    Action: the action to take, should be one of [{{tool_names}}]
+    Action Input: the input to the action
+    Observation: the result of the action
+    Final Answer: the final answer to the original input question
+    '''
+    
+    prompt = PromptTemplate(input_variables=['agent_scratchpad', 'input', 'tool_names', 'tools'], template=template)
+    return prompt
+
+# model_result = {'palette_num': "Palette1"}
+# generate_response(model_result, "햅틱 가이던스 실행시켜줘")

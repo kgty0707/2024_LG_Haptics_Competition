@@ -16,49 +16,28 @@
 
   <!-- preloading icon font is helping to speed up a little bit -->
   <link rel="stylesheet" href="/static/assets/css/style.bundle.css">
+  <link rel="stylesheet" href="/static/css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <style>
-    /* 좌우 반전 및 기본 비디오 스타일 */
-    #video {
-      transform: scaleX(-1);
-      /* 좌우 반전 */
-      max-width: 100%;
-      /* 반응형 크기 조정 */
-      height: auto;
-      /* 반응형 크기 조정 */
-    }
-    .header-section h2 {
-      color: #ffcee6; /* 핑크색 */
-      margin-bottom: 0;
-    }
-    .divider {
-      height: 2px;
-      background-color: #ffcee6; /* 핑크색 */
-      width: 100%;
-      margin: 10px 0;
-    }
-  </style>
 </head>
 
 <body>
   <div class="container mt-4">
     <!-- Header Section with Divider -->
     <div class="text-center mb-4">
-      <div class="header-section">
-        <h2>화해</h2>
-        <div class="divider"></div>
-      </div>
+      <h2 class="text-pink">화해</h2>
+      <hr class="bg-pink" style="height: 2px;">
     </div>
 
     <!-- Camera Section -->
     <div class="text-center mb-4">
       <video id="video" autoplay></video>
+      <img id="fallbackImage" class="center" src="/static/images/화장품 핑크 배경.jpg" alt="Fallback Image">
     </div>
 
     <!-- Question Section -->
     <div class="card p-4">
       <div class="text-center mb-4">
-        <img id="questionImage" src="/static/images/질문하기.jpg" alt="Ms. 메이크 아바타" class="img-fluid" style="max-width: 300px;">
+        <img src="/static/images/질문하기.jpg" alt="Ms. 메이크 아바타" class="img-fluid" style="max-width: 300px;">
       </div>
       <div class="card-body">
         <p class="text-muted text-center">메이크업 아티스트 Ms. 메이크에게 물어보세요.</p>
@@ -75,90 +54,7 @@
   <script src="/static/assets/js/widgets.bundle.js"></script>
   <script src="/static/assets/js/scripts.bundle.js"></script>
   <script src="/static/js/custom.js"></script>
-  <script>
-    // JavaScript to access the user's webcam and display it in the video element
-    const video = document.getElementById('video');
-
-    // Check if the browser supports getUserMedia for video
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-<<<<<<< HEAD
-      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        .then(function(stream) {
-=======
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(function (stream) {
->>>>>>> 98cf062fe0a0e2b4c98bbad5baac8068abb3d84a
-          video.srcObject = stream;
-
-          let mediaRecorder;
-          let audioChunks = [];
-          let isRecording = false;
-
-          // Toggle recording state on image click
-          document.getElementById('questionImage').addEventListener('click', () => {
-            if (!isRecording) {
-              // Start recording
-              mediaRecorder = new MediaRecorder(stream);
-              audioChunks = [];
-              mediaRecorder.start();
-              isRecording = true;
-              console.log('Recording started.');
-
-              mediaRecorder.ondataavailable = function(event) {
-                audioChunks.push(event.data);
-              };
-
-              mediaRecorder.onstop = function() {
-                console.log('Recording stopped.');
-                const audioBlob = new Blob(audioChunks, { 'type': 'audio/wav' });
-                const audioUrl = URL.createObjectURL(audioBlob);
-                const audio = new Audio(audioUrl);
-                audio.play(); // 자동 재생
-              };
-
-            } else {
-              // Stop recording
-              mediaRecorder.stop();
-              isRecording = false;
-              console.log('Recording stopped manually.');
-            }
-          });
-        })
-<<<<<<< HEAD
-        .catch(function(err) {
-          console.error("Error accessing the camera or microphone: " + err);
-=======
-        .catch(function (err) {
-          console.error("Error accessing the camera: " + err);
->>>>>>> 98cf062fe0a0e2b4c98bbad5baac8068abb3d84a
-        });
-    } else {
-      alert('Your browser does not support accessing the camera or microphone.');
-    }
-<<<<<<< HEAD
-=======
-
-    // Detect device orientation change
-    window.addEventListener('orientationchange', function () {
-      let transformValue = '';
-      switch (window.orientation) {
-        case 0:
-          transformValue = 'scaleX(-1) rotate(0deg)';
-          break;
-        case 90:
-          transformValue = 'scaleX(-1) rotate(-90deg)';
-          break;
-        case -90:
-          transformValue = 'scaleX(-1) rotate(90deg)';
-          break;
-        case 180:
-          transformValue = 'scaleX(-1) rotate(180deg)';
-          break;
-      }
-      video.style.transform = transformValue;
-    });
->>>>>>> 98cf062fe0a0e2b4c98bbad5baac8068abb3d84a
-  </script>
+  <script src="/static/js/video.js"></script>
 </body>
 
 </html>
