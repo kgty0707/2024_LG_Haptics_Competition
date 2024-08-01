@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Firebase와 Vanilla JS 연동</title>
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-firestore.js"></script>
+
+</head>
+
+<body>
+    <h1>Firebase와 Vanilla JS 연동</h1>
+    <script type="module">
+        import firebaseConfig from '/config/config.js';  // 루트 디렉토리의 config.js 파일 불러오기
+
+        // Firebase 초기화
+        firebase.initializeApp(firebaseConfig);
+
+        var database = firebase.database();
+
+        function writeUserData(value) {
+            firebase.database().ref('users/').set(value);
+        }
+        writeUserData("Hello~~")
+    </script>
+</body>
+
+</html>
