@@ -1,60 +1,26 @@
-<!doctype html>
-<html lang="en" dir="ltr">
+{% extends "base.html" %}
 
-<head>
-  <title>질문하기 - Ms. 메이크</title>
-  <meta name="description" content="Ms. 메이크에게 메이크업 관련 질문을 해보세요.">
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+{% block title %}질문하기 - Ms. 메이크{% endblock %}
 
-  <!-- speed up external res -->
-  <link rel="dns-prefetch" href="https://fonts.googleapis.com/">
-  <link rel="dns-prefetch" href="https://fonts.gstatic.com/">
-  <link rel="preconnect" href="https://fonts.googleapis.com/">
-  <link rel="preconnect" href="https://fonts.gstatic.com/">
+{% block content %}
+<!-- Camera Section -->
+<div class="text-center mb-4">
+  <video id="video" autoplay></video>
+  <img id="fallbackImage" class="center" src="/static/images/화장품 핑크 배경.jpg" alt="Fallback Image">
+</div>
 
-  <!-- preloading icon font is helping to speed up a little bit -->
-  <link rel="stylesheet" href="/static/assets/css/style.bundle.css">
-  <link rel="stylesheet" href="/static/css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
-</head>
-
-<body>
-  <div class="container mt-4">
-    <!-- Header Section with Divider -->
-    <div class="text-center mb-4">
-      <h2 class="text-pink">화해</h2>
-      <hr class="bg-pink" style="height: 2px;">
-    </div>
-
-    <!-- Camera Section -->
-    <div class="text-center mb-4">
-      <video id="video" autoplay></video>
-      <img id="fallbackImage" class="center" src="/static/images/화장품 핑크 배경.jpg" alt="Fallback Image">
-    </div>
-
-    <!-- Question Section -->
-    <div class="card p-4">
-      <div class="text-center mb-4">
-        <img src="/static/images/질문하기.jpg" alt="Ms. 메이크 아바타" class="img-fluid" style="max-width: 300px;">
-      </div>
-      <div class="card-body">
-        <p class="text-muted text-center">메이크업 아티스트 Ms. 메이크에게 물어보세요.</p>
-        <ul class="list-unstyled text-muted text-center">
-          <li class="mb-2">“분홍색 섀도우 위치 어딨어?”</li>
-          <li class="mb-2">“섀도우 색 설명해줘”</li>
-          <li>“오른쪽 첫번째 섀도우 색은 뭐야?”</li>
-        </ul>
-      </div>
-    </div>
+<!-- Question Section -->
+<div class="card p-4">
+  <div class="text-center mb-4">
+    <img src="/static/images/질문하기.jpg" alt="Ms. 메이크 아바타" class="img-fluid" style="max-width: 300px;">
   </div>
-
-  <!-- Core javascripts -->
-  <script src="/static/assets/js/widgets.bundle.js"></script>
-  <script src="/static/assets/js/scripts.bundle.js"></script>
-  <script src="/static/js/custom.js"></script>
-  <script src="/static/js/video.js"></script>
-</body>
-
-</html>
+  <div class="card-body">
+    <p class="text-muted text-center">메이크업 아티스트 Ms. 메이크에게 물어보세요.</p>
+    <ul class="list-unstyled text-muted text-center">
+      <li class="mb-2">“분홍색 섀도우 위치 어딨어?”</li>
+      <li class="mb-2">“섀도우 색 설명해줘”</li>
+      <li>“오른쪽 첫번째 섀도우 색은 뭐야?”</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

@@ -1,60 +1,31 @@
-<!doctype html>
-<html lang="en" dir="ltr">
+{% extends "base.html" %}
 
-<head>
-  <title>Haptics</title>
-  <meta name="description" content="...">
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <!-- speed up external res -->
-  <link rel="dns-prefetch" href="https://fonts.googleapis.com/">
-  <link rel="dns-prefetch" href="https://fonts.gstatic.com/">
-  <link rel="preconnect" href="https://fonts.googleapis.com/">
-  <link rel="preconnect" href="https://fonts.gstatic.com/">
-  <!-- preloading icon font is helping to speed up a little bit -->
-  <link rel="stylesheet" href="/static/assets/css/style.bundle.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
-</head>
+{% block title %}Home - Haptics{% endblock %}
 
-<body>
-  <div class="container mt-4">
-    <!-- Header Section with Divider -->
-    <div class="text-center mb-4">
-      <h2 style="color: var(--bs-pink);">화해</h2>
-      <hr style="background-color: var(--bs-pink); height: 2px;">
-    </div>
+{% block content %}
 
-    <!-- Profile Section -->
-    <div class="text-center mb-4">
-      <img src="/static/images/찡긋 메이크.jpg" alt="Ms. 메이크" class="img-fluid rounded-circle" style="max-width: 200px;">
-      <h1 class="mt-2">Ms. 메이크</h1>
-    </div>
 
-    <!-- Content Cards -->
-    <div class="card mb-3">
-      <div class="row no-gutters">
-        <div class="col-md-4 d-flex align-items-stretch justify-content-center">
-          <a href="main/second" class="d-flex w-100 h-100">
-            <img src="/static/images/나만의 메이크업.jpg" class="card-img-top img-fluid w-100 h-100" alt="나만의 메이크업">
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <div class="card mb-3">
-      <div class="row no-gutters">
-        <div class="col-md-4 d-flex align-items-stretch justify-content-center">
-          <img src="/static/images/특별한 메이크업.jpg" class="card-img-top img-fluid w-100 h-100" alt="특별한 메이크업">
-        </div>
-      </div>
-    </div>
+<!-- Profile Section -->
+<div class="card my-5 bg-light-danger">
+  <div class="text-center my-4">
+    <img src="/static/images/찡긋 메이크.jpg" alt="Ms. 메이크" class="img-fluid rounded-circle" style="max-width: 200px;">
+    <h1 class="black-han-sans-regular mt-4">Ms. 메이크</h1>
   </div>
+</div>
 
-  <!-- Core javascripts -->
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.6/dist/umd/popper.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
 
-</html>
+<!-- Content Cards -->
+<div class="card my-5">
+  <div class="col-md-4 d-flex align-items-stretch justify-content-center">
+    <a href="main/second" class="d-flex w-100 h-100">
+      <img src="/static/images/나만의 메이크업.jpg" class="card-img-top img-fluid w-100 h-100" alt="나만의 메이크업">
+    </a>
+  </div>
+</div>
+
+<div class="card my-5">
+  <div class="col-md-4 d-flex align-items-stretch justify-content-center">
+    <img src="/static/images/특별한 메이크업.jpg" class="card-img-top img-fluid w-100 h-100" alt="특별한 메이크업">
+  </div>
+</div>
+{% endblock %}

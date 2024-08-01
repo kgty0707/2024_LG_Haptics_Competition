@@ -1,3 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap');
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.black-han-sans-regular {
+  font-family: "Black Han Sans", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.font-weight-light {
+  font-weight: 300;
+}
+
+.font-weight-regular {
+  font-weight: 400;
+}
+
+.font-weight-medium {
+  font-weight: 500;
+}
+
+.font-weight-bold {
+  font-weight: 700;
+}
+
 .scrollable-list {
   max-height: 100%;
   overflow-y: auto;
@@ -29,6 +58,10 @@
   /* 반응형 크기 조정 */
   height: auto;
   /* 반응형 크기 조정 */
+}
+
+.text-pink {
+  color: #ffcee6;
 }
 
 .header-section h2 {
