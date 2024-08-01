@@ -20,9 +20,12 @@
   <style>
     /* 좌우 반전 및 기본 비디오 스타일 */
     #video {
-      transform: scaleX(-1); /* 좌우 반전 */
-      max-width: 100%; /* 반응형 크기 조정 */
-      height: auto; /* 반응형 크기 조정 */
+      transform: scaleX(-1);
+      /* 좌우 반전 */
+      max-width: 100%;
+      /* 반응형 크기 조정 */
+      height: auto;
+      /* 반응형 크기 조정 */
     }
   </style>
 </head>
@@ -39,7 +42,7 @@
     <div class="text-center mb-4">
       <video id="video" autoplay></video>
     </div>
-    
+
     <!-- Question Section -->
     <div class="card p-4">
       <div class="text-center mb-4">
@@ -67,10 +70,10 @@
     // Check if the browser supports getUserMedia
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ video: true })
-        .then(function(stream) {
+        .then(function (stream) {
           video.srcObject = stream;
         })
-        .catch(function(err) {
+        .catch(function (err) {
           console.error("Error accessing the camera: " + err);
         });
     } else {
@@ -78,7 +81,7 @@
     }
 
     // Detect device orientation change
-    window.addEventListener('orientationchange', function() {
+    window.addEventListener('orientationchange', function () {
       let transformValue = '';
       switch (window.orientation) {
         case 0:
