@@ -1,9 +1,7 @@
 import os
-import urllib.parse
 
 from dotenv import load_dotenv
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile
-import openai
 from pydantic import BaseModel
 
 from fastapi.templating import Jinja2Templates
@@ -70,31 +68,7 @@ def test(request: Request):
 @router.get("/arduino")
 async def test(request: Request):
     return templates.TemplateResponse(
-        name="arduino.html",
+        name="websocket.html",
         context={"request": request}
     )
 
-openai.api_key = api_key
-
-class TranscriptionResult(BaseModel):
-    text: str
-
-@router.post("/transcribe", response_model=TranscriptionResult)
-async def transcribe_audio(file: UploadFile = File(...)):
-    try:
-        # 오디오 파일을 읽기
-        audio_data = await file.read()
-        with open("temp_audio.wav", "wb") as f:
-            f.write(audio_data)
-
-        # OpenAI Whisper API를 사용하여 음성을 텍스트로 변환
-        with open("temp_audio.wav", "rb") as audio_file:
-            transcription = openai.audio.transcriptions.create(
-                model="whisper-1",
-                file=audio_file,
-                response_format="text"
-            )
-        
-        return {"text": transcription['text']}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))

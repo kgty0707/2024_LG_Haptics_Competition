@@ -31,6 +31,8 @@ def create_app():
     
     register(app, 'app.routes.main')
     register(app, 'app.routes.model')
+    register(app, 'app.routes.voice')
+    register(app, 'app.routes.websocket')
     return app
 
 
