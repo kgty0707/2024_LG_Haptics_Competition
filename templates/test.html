@@ -67,7 +67,8 @@
           <li class="mb-2">“섀도우 색 설명해줘”</li>
           <li>“오른쪽 첫번째 섀도우 색은 뭐야?”</li>
         </ul>
-        <p id="transcription" class="text-center">녹음된 텍스트: </p>
+        <p id="userTranscription" class="text-center">사용자: </p>
+        <p id="gptTranscription" class="text-center">GPT: </p>
         <div class="text-center">
           <audio id="audioPlayback" controls class="hidden"></audio>
         </div>
@@ -77,7 +78,6 @@
 
   <script src="/static/assets/js/widgets.bundle.js"></script>
   <script src="/static/assets/js/scripts.bundle.js"></script>
-  <script src="/static/js/custom.js"></script>
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
@@ -89,10 +89,11 @@
 
     const questionImage = document.getElementById('questionImage');
     const audioPlayback = document.getElementById('audioPlayback');
+    const userTranscription = document.getElementById('userTranscription');
+    const gptTranscription = document.getElementById('gptTranscription');
 
     questionImage.addEventListener('click', () => {
       if (!stream) {
-        // 권한 요청 및 스트림 시작
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
           .then(function(mediaStream) {
             stream = mediaStream;
@@ -109,7 +110,6 @@
 
     function toggleRecording() {
       if (!isRecording) {
-        // Start recording
         mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
         mediaRecorder.start();
@@ -123,8 +123,6 @@
         mediaRecorder.onstop = function() {
           console.log('Recording stopped.');
           const audioBlob = new Blob(audioChunks, { 'type': 'audio/wav' });
-
-          // 오디오 파일을 서버로 전송하여 STT 요청
           const formData = new FormData();
           formData.append('file', audioBlob, 'recording.wav');
 
@@ -134,19 +132,16 @@
           })
           .then(response => response.json())
           .then(data => {
-            document.getElementById('transcription').textContent = `녹음된 텍스트: ${data.text}`;
+            userTranscription.textContent = `사용자: ${data.text}`;
+            gptTranscription.textContent = `GPT: ${data.gpt_text}`;
+            audioPlayback.src = data.audio_url;
+            audioPlayback.classList.remove('hidden');
           })
           .catch(error => {
             console.error('Error during transcription:', error);
           });
-
-          // 재생바 업데이트
-          const audioUrl = URL.createObjectURL(audioBlob);
-          audioPlayback.src = audioUrl;
-          audioPlayback.classList.remove('hidden');
         };
       } else {
-        // Stop recording
         mediaRecorder.stop();
         isRecording = false;
         console.log('Recording stopped manually.');
