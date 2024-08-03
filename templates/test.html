@@ -92,18 +92,20 @@
     const userTranscription = document.getElementById('userTranscription');
     const gptTranscription = document.getElementById('gptTranscription');
 
+    // 웹사이트 로드 시 권한 요청 및 스트림 시작
+    window.addEventListener('load', () => {
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(function(mediaStream) {
+          stream = mediaStream;
+          video.srcObject = stream;
+        })
+        .catch(function(err) {
+          console.error("Error accessing the camera or microphone: " + err);
+        });
+    });
+
     questionImage.addEventListener('click', () => {
-      if (!stream) {
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-          .then(function(mediaStream) {
-            stream = mediaStream;
-            video.srcObject = stream;
-            toggleRecording();
-          })
-          .catch(function(err) {
-            console.error("Error accessing the camera or microphone: " + err);
-          });
-      } else {
+      if (stream) {
         toggleRecording();
       }
     });
@@ -117,12 +119,14 @@
         console.log('Recording started.');
 
         mediaRecorder.ondataavailable = function(event) {
-          audioChunks.push(event.data);
+            audioChunks.push(event.data);
         };
 
         mediaRecorder.onstop = function() {
           console.log('Recording stopped.');
-          const audioBlob = new Blob(audioChunks, { 'type': 'audio/wav' });
+          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+
+          // 오디오 파일을 서버로 전송하여 STT 요청
           const formData = new FormData();
           formData.append('file', audioBlob, 'recording.wav');
 
@@ -132,14 +136,18 @@
           })
           .then(response => response.json())
           .then(data => {
+            document.getElementById('transcription').textContent = `녹음된 텍스트: ${data.text}`;
             userTranscription.textContent = `사용자: ${data.text}`;
             gptTranscription.textContent = `GPT: ${data.gpt_text}`;
-            audioPlayback.src = data.audio_url;
-            audioPlayback.classList.remove('hidden');
           })
           .catch(error => {
             console.error('Error during transcription:', error);
           });
+
+          // 재생바 업데이트
+          const audioUrl = URL.createObjectURL(audioBlob);
+          audioPlayback.src = audioUrl;
+          audioPlayback.classList.remove('hidden');
         };
       } else {
         mediaRecorder.stop();
