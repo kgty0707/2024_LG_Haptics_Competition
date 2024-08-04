@@ -47,8 +47,8 @@ async def transcribe_audio(file: UploadFile = File(...)):
             file=open(audio_path, "rb"),
             response_format="json"
         )
-
-        text_result = transcription['text']
+        print(transcription)
+        text_result = transcription.text
 
         return {"text": text_result}
     except Exception as e:

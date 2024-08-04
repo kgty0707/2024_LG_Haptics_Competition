@@ -115,7 +115,6 @@
 
     questionImage.addEventListener('click', () => {
       if (stream) {
-        captureImage();
         toggleRecording();
       }
     });
@@ -147,6 +146,7 @@
 
     function toggleRecording() {
       if (!isRecording) {
+        captureImage();
         mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
         mediaRecorder.start();
