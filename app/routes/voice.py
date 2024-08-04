@@ -22,32 +22,32 @@ client = openai.OpenAI(api_key=api_key)
 
 
 @router.post("/transcribe_audio")
-async def transcribe_audio(file: UploadFile = File(...)):
+async def transcribe_audio(file: UploadFile = File(...), image: UploadFile = File(...)):
     try:
-        logger.debug("Received file for transcription.")
-        # 오디오 파일을 읽기
+        # 오디오 파일 저장
         audio_data = await file.read()
-        file_path = "temp_audio.wav"
-        logger.debug(f"Saving audio to {file_path}")
-
-        with open(file_path, "wb") as f:
-            f.write(audio_data)
-
-        logger.debug(f"Audio saved to {file_path}")
-
-        # OpenAI Whisper API를 사용하여 음성을 텍스트로 변환
-        with open(file_path, "rb") as audio_file:
-            logger.debug(f"Audio file {file_path} opened successfully.")
-            transcription = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=audio_file,
-            )
+        audio_path = "temp_audio.wav"
+        with open(audio_path, "wb") as audio_file:
+            audio_file.write(audio_data)
         
-        logger.debug(f"Transcription result: {transcription.text}")
-        return {"text": transcription.text}
+        # 이미지 파일 저장
+        image_data = await file.read()
+        image_path = "temp_image.png"
+        with open(image_path, "wb") as image_file:
+            image_file.write(image_data)
+        
+        # OpenAI Whisper API를 사용하여 음성을 텍스트로 변환
+        transcription = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=open(audio_path, "rb"),
+            response_format="json"
+        )
+
+        text_result = transcription['text']
+
+        return {"text": text_result}
     except Exception as e:
-        logger.error(f"Error in transcribe_audio: {str(e)}")
-        raise HTTPException(status_code=501, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
         
 
 @router.post("/generate_gpt_response")

@@ -39,6 +39,13 @@
     .hidden {
       display: none;
     }
+    #capturedImage {
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+      margin: 0 auto;
+      display: none;
+    }
   </style>
 </head>
 
@@ -54,6 +61,7 @@
     <div class="text-center mb-4">
       <video id="video" autoplay></video>
       <canvas id="canvas" class="hidden"></canvas>
+      <img id="capturedImage" alt="Captured Image">
     </div>
     
     <div class="card p-4">
@@ -91,6 +99,7 @@
     const audioPlayback = document.getElementById('audioPlayback');
     const userTranscription = document.getElementById('userTranscription');
     const gptTranscription = document.getElementById('gptTranscription');
+    const capturedImage = document.getElementById('capturedImage');
 
     // 웹사이트 로드 시 권한 요청 및 스트림 시작
     window.addEventListener('load', () => {
@@ -119,22 +128,6 @@
       console.log('Photo captured:', imageData);
       capturedImage.src = imageData;
       capturedImage.style.display = 'block';
-
-      // 캡쳐한 이미지를 서버로 전송
-      fetch('/save_image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ image: imageData })
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Image saved:', data);
-      })
-      .catch(error => {
-        console.error('Error saving image:', error);
-      });
     }
 
     function toggleRecording() {
@@ -146,16 +139,20 @@
         console.log('Recording started.');
 
         mediaRecorder.ondataavailable = function(event) {
-            audioChunks.push(event.data);
+          audioChunks.push(event.data);
         };
 
         mediaRecorder.onstop = function() {
           console.log('Recording stopped.');
           const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
 
-          // 오디오 파일을 서버로 전송하여 STT 요청
+          // 캡쳐한 이미지 데이터 가져오기
+          const imageData = canvas.toDataURL('image/png');
+
+          // 오디오 및 이미지 파일을 서버로 전송하여 STT 요청
           const formData = new FormData();
           formData.append('file', audioBlob, 'recording.wav');
+          formData.append('image', imageData);
 
           fetch('/transcribe_audio', {
             method: 'POST',
