@@ -31,10 +31,12 @@ def create_app():
     
     register(app, 'app.routes.main')
     register(app, 'app.routes.model')
+    register(app, 'app.routes.voice')
+    register(app, 'app.routes.websocket')
     return app
 
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run("manage:create_app", host="localhost", port=8000, reload=True, factory=True)
+    uvicorn.run("manage:create_app", host="0.0.0.0", port=8000, reload=True, factory=True)
 

@@ -1,11 +1,12 @@
 import os
 import time
-from dotenv import load_dotenv
+
 from langchain.tools import BaseTool
 from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.agents import AgentExecutor, create_react_agent
 from app.routes.search import search_by
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -42,22 +43,14 @@ class HandModelTool(BaseTool):
     def _arun(self, text: str):
         raise NotImplementedError("This tool does not support async")
 
+
 class HapticGuidanceTool(BaseTool):
     '''
     HapticGuidanceTool을 선택하면 현재 120초간 멈춤
     '''
     name = "Haptic Guidance Tool"
     description = "Haptic Guidance Tool"
-
-    def haptic_guidance():
-        '''
-        손 위치 모델, 섀도우 위치 예측 모델 프레임 마다 비교 실행.
-        알고리즘 구현은 def hand_model과 비슷할 듯.
-
-        추가적으로 위치에 따라 firebase에 진동 전송하는 로직 필요함.
-        '''
-        ...
-
+    
     def _run(self, text: str) -> str:
         time.sleep(120)
         return "120초간의 대기가 완료되었습니다."

@@ -1,12 +1,16 @@
-import urllib.parse
+import os
 
-from fastapi import APIRouter, Request
+from dotenv import load_dotenv
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse
 from app.routes.model import generate_response
 from app.AI.model import detection_cosmatic, detection_hand
+
+load_dotenv()
+api_key = os.getenv('GPT_API_KEY')
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -64,6 +68,7 @@ def test(request: Request):
 @router.get("/arduino")
 async def test(request: Request):
     return templates.TemplateResponse(
-        name="arduino.html",
+        name="websocket.html",
         context={"request": request}
     )
+

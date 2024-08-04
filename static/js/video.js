@@ -51,11 +51,10 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             const audioBlob = new Blob(audioChunks, { 'type': 'audio/wav' });
             const audioUrl = URL.createObjectURL(audioBlob);
             const audio = new Audio(audioUrl);
-            audio.play(); // 자동 재생
+            audio.play(); 
           };
 
         } else {
-          // Stop recording
           mediaRecorder.stop();
           isRecording = false;
           console.log('Recording stopped manually.');
