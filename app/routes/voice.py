@@ -1,5 +1,5 @@
 import os
-import openai
+from openai import OpenAI
 from pydantic import BaseModel
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
@@ -13,7 +13,7 @@ if not my_api_key:
 
 router = APIRouter()
 
-openai.api_key = my_api_key
+client = OpenAI(api_key=my_api_key, base_url="https://api.openai.com/v1",)
 
 class TranscriptionResult(BaseModel):
     text: str
@@ -35,7 +35,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
 
         # OpenAI Whisper API를 사용하여 음성을 텍스트로 변환
         with open("temp_audio.wav", "rb") as audio_file:
-            transcription = openai.audio.transcriptions.create(
+            transcription = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=audio_file,
                 response_format="json"
@@ -52,7 +52,7 @@ async def generate_gpt_response(user_text: str):
         # GPT-3.5에게 텍스트 전달 및 응답 받기
         system_role="당신은 고도로 숙련된 메이크업 아티스트로 친절하게 색깔을 추천해 주고 소개를 해줍니다"
         prompt = f"{user_text}"
-        gpt_response = openai.chat.completions.create(
+        gpt_response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": system_role},
@@ -68,7 +68,7 @@ async def generate_gpt_response(user_text: str):
 async def generate_audio(gpt_text: str):
     try:
         # OpenAI TTS API를 사용하여 텍스트를 음성으로 변환
-        speech_response = openai.audio.speech.create(
+        speech_response = client.audio.speech.create(
             model="tts-1",
             voice="alloy",
             input=gpt_text
