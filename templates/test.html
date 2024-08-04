@@ -130,18 +130,40 @@
           const formData = new FormData();
           formData.append('file', audioBlob, 'recording.wav');
 
-          fetch('/transcribe', {
+          fetch('/transcribe_audio', {
             method: 'POST',
             body: formData
           })
           .then(response => response.json())
           .then(data => {
-            document.getElementById('transcription').textContent = `녹음된 텍스트: ${data.text}`;
             userTranscription.textContent = `사용자: ${data.text}`;
+            return fetch('/generate_gpt_response', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ user_text: data.text })
+            });
+          })
+          .then(response => response.json())
+          .then(data => {
             gptTranscription.textContent = `GPT: ${data.gpt_text}`;
+            return fetch('/generate_audio', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ gpt_text: data.gpt_text })
+            });
+          })
+          .then(response => response.json())
+          .then(data => {
+            const audioUrl = data.audio_url;
+            audioPlayback.src = audioUrl;
+            audioPlayback.classList.remove('hidden');
           })
           .catch(error => {
-            console.error('Error during transcription:', error);
+            console.error('Error:', error);
           });
 
           // 재생바 업데이트
