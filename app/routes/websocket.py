@@ -5,7 +5,6 @@ import random
 import asyncio
 import json
 
-app = FastAPI()
 router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
@@ -23,6 +22,7 @@ def update_condition_met(value: bool):
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    print("connect websocket")
     await websocket.accept()
     connected_clients.append(websocket)
     try:
@@ -32,7 +32,8 @@ async def websocket_endpoint(websocket: WebSocket):
 
 async def monitor_conditions(websocket: WebSocket):
     while True:
-        await asyncio.sleep(5)  # Check the condition every 5 seconds
+        print("뭐지 진짜로")
+        await asyncio.sleep(5)
         if check_condition():
             await haptic_guidance(websocket)
 
@@ -76,7 +77,7 @@ async def haptic_guidance(websocket: WebSocket):
     
         if time.time() - start_time > timeout:
             print("Time out reached")
-            message = json.dumps({"text": "", "data": 6})
+            message = json.dumps({"text": "", "data": 5})
             await websocket.send_text(message)
             return
 
@@ -92,6 +93,9 @@ async def haptic_guidance(websocket: WebSocket):
             message = json.dumps({"text": "", "data": 3})
             print(message)
             await websocket.send_text(message)
+
+        await asyncio.sleep(3)
+
         if y2 > y1_max: # 아래
             message = json.dumps({"text": "", "data": 2})
             print(message)
@@ -101,7 +105,7 @@ async def haptic_guidance(websocket: WebSocket):
             print(message)
             await websocket.send_text(message)
 
-        await asyncio.sleep(1)
+        await asyncio.sleep(3)
 
     message = json.dumps({"text": "", "data": 0})
     print(message)
@@ -114,11 +118,11 @@ def get_model1_bbox():
     모델1의 경계 상자를 반환하는 함수
     이 함수는 임시로 고정된 값을 반환하지만 실제로는 모델의 추론 결과를 반환해야 함
     '''
-    return (0, 0, 5, 5)
+    return (4, 4, 5, 5)
 
 def get_model2_coords():
     '''
     모델2의 좌표값을 추론해서 반환하는 함수
     이 함수는 임시로 랜덤값을 반환하지만 실제로는 모델의 추론 결과를 반환해야 함
     '''
-    return (random.randint(0, 10), random.randint(0, 10))
+    return (random.randint(0, 1), random.randint(0, 1))

@@ -1,89 +1,101 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Recorder</title>
+    <title>Audio Recorder Test</title>
 </head>
 
 <body>
+    <button id="recording">Start/Stop Recording</button>
+    <button id="playRecording" disabled>Play Recording</button>
+    <audio id="audioPlayer" controls></audio>
+    <div id="result"></div>
 
-    <!-- 오디오 엘리먼트 -->
-    <audio controls></audio>
-    <!-- 녹음 버튼 -->
-    <button id="recordButton">녹음 시작</button>
-</body>
+    <script>
+        let audioChunks = [];
+        let mediaRecorder;
 
-<script>
-    // audio 엘리먼트 취득
-    const $audio = document.querySelector("audio");
-    const recordButton = document.getElementById('recordButton');
-    let mediaRecorder;
-    let recordedChunks = [];
+        function startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        document.getElementById('audioPlayer').src = audioUrl;
 
-    // 마이크 MediaStream 취득(audio를 true로 설정)
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then((mediaStream) => {
-            // 마이크에서 입력받은 MediaStream으로 오디오 재생
-            $audio.srcObject = mediaStream;
-            $audio.onloadedmetadata = (event) => {
-                $audio.play();
-            };
+                        var today = getTodayDateTimeString();
 
-            // MediaRecorder 생성
-            mediaRecorder = new MediaRecorder(mediaStream);
+                        const formData = new FormData();
+                        formData.append("file", audioBlob, today + ".wav");
 
-            // 데이터가 준비되었을 때 호출되는 이벤트 핸들러
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    recordedChunks.push(event.data);
-                }
-            };
-
-            // 녹음이 멈췄을 때 호출되는 이벤트 핸들러
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-                recordedChunks = [];
-                uploadRecordedFile(blob);
-            };
-
-            // 녹음 버튼 클릭 이벤트 핸들러
-            recordButton.addEventListener('click', () => {
-                if (mediaRecorder.state === 'inactive') {
+                        fetch('/upload', {
+                            method: 'POST',
+                            body: formData
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.message === "Uploaded successfully") {
+                                    document.getElementById('result').innerText = data.text;
+                                } else {
+                                    document.getElementById('result').innerText = "Failed to upload";
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error occurred during upload:', error);
+                                document.getElementById('result').innerText = "Error occurred during upload";
+                            });
+                    };
                     mediaRecorder.start();
-                    recordButton.textContent = '녹음 중지';
-                } else if (mediaRecorder.state === 'recording') {
-                    mediaRecorder.stop();
-                    recordButton.textContent = '녹음 시작';
-                }
-            });
-        })
-        .catch((err) => {
-            console.error(`에러 발생: ${err}`);
-        });
 
-    // 녹음된 파일을 서버로 업로드하는 함수
-    async function uploadRecordedFile(blob) {
-        const formData = new FormData();
-        formData.append('file', blob, 'recording.webm'); // Ensure the key name matches the server expectation
-
-        try {
-            const response = await fetch('http://localhost:8000/upload/', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log('업로드 성공:', data);
-            } else {
-                console.error('업로드 실패:', response.statusText);
-            }
-        } catch (error) {
-            console.error('업로드 실패:', error);
+                    document.getElementById('recording').removeEventListener('click', startRecording);
+                    document.getElementById('recording').addEventListener('click', stopRecording);
+                })
+                .catch(console.error);
         }
-    }
-</script>
+
+        function stopRecording() {
+            document.getElementById('recording').disabled = false;
+            document.getElementById('playRecording').disabled = false;
+            mediaRecorder.stop();
+
+            document.getElementById('recording').removeEventListener('click', stopRecording);
+            document.getElementById('recording').addEventListener('click', startRecording);
+        }
+
+        function playRecording() {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audio.play();
+        }
+
+        document.getElementById('recording').addEventListener('click', startRecording);
+        document.getElementById('playRecording').addEventListener('click', playRecording);
+
+        function getTodayDateTimeString() {
+            var today = new Date();
+            var year = today.getFullYear();
+            var month = today.getMonth() + 1;
+            var day = today.getDate();
+            var hours = today.getHours();
+            var minutes = today.getMinutes();
+            var seconds = today.getSeconds();
+
+            if (month < 10) { month = '0' + month; }
+            if (day < 10) { day = '0' + day; }
+            if (hours < 10) { hours = '0' + hours; }
+            if (minutes < 10) { minutes = '0' + minutes; }
+            if (seconds < 10) { seconds = '0' + seconds; }
+
+            return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+        }
+    </script>
+</body>
 
 </html>

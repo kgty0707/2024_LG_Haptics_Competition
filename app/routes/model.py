@@ -5,10 +5,12 @@ from langchain.tools import BaseTool
 from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.agents import AgentExecutor, create_react_agent
+from app.routes.websocket import update_condition_met
 from app.routes.search import search_by
 from dotenv import load_dotenv
 from openai import OpenAI
-from websocket import update_condition_met
+from datetime import datetime
+import re
 
 load_dotenv()
 
@@ -20,7 +22,7 @@ if not api_key:
 llm = ChatOpenAI(
     openai_api_key=api_key,
     temperature=0,
-    model_name='gpt-4o-mini'
+    model_name='gpt-3.5-turbo'
 )
 
 # TODO: HandModelTool(BaseTool), HapticGuidanceTool(BaseTool)의 모델 추론 결과 반환하는 부분 통일
@@ -67,14 +69,14 @@ class HandModelTool(BaseTool):
 
 class HapticGuidanceTool(BaseTool):
     '''
-    HapticGuidanceTool을 선택하면 현재 120초간 멈춤
+    HapticGuidanceTool을 실행
     '''
     name = "Haptic Guidance Tool"
     description = "Haptic Guidance Tool"
     
     def _run(self, text: str) -> str:
         update_condition_met(True)
-        time.sleep(120)
+        print("True************************************************")
         return "120초간의 대기가 완료되었습니다."
 
     def _arun(self, text: str):
@@ -108,13 +110,29 @@ def generate_response(model_result, query):
         verbose=True,
         return_intermediate_steps=True,
         handle_parsing_errors=True,
-        max_iterations=1,
+        max_iterations=2,
     )
 
     response = agent_executor.invoke({"input": f"{query}"})
     print(response)
-    return response["output"]
 
+    
+    if response["output"] == "Agent stopped due to iteration limit or time limit.":
+        intermediate_steps = response["intermediate_steps"]
+
+        text = str(intermediate_steps[0][0])
+        pattern = r"log='(.+)'"
+
+        match = re.search(pattern, text)
+
+        if match:
+            result = match.group(1)
+        else:
+            result = "AI Agent에서 추출할 수 있는 답변이 없어요."
+        
+        return result
+    else:
+        return response["output"]
 
 def generate_template(info):
     template = f'''You are an assistant who helps explain cosmetics for the blind. When you ask questions about colors or cosmetics, kindly explain them in Korean.
@@ -136,9 +154,35 @@ def generate_template(info):
     return prompt
 
 
-# TODO: 이 아래 코드는 숫자만 추출하는 코드, 사용자가 원하는 색을 말했을 때 해당하는 색깔을 찾음(완)
-
 client = OpenAI(api_key=api_key)
+
+def stt(audio_path):
+    audio_file= open(audio_path, "rb")
+    transcription = client.audio.transcriptions.create(
+    model="whisper-1", 
+    file=audio_file
+    )
+    return transcription.text
+
+
+def tts(text_path):
+    response = client.audio.speech.create(
+        model="tts-1",
+        voice="fable",
+        input=text_path
+    )
+    # 현재 날짜와 시간을 기준으로 파일 이름 생성
+    now = datetime.now()
+    file_name = now.strftime("text_%Y%m%d_%H%M%S.wav")
+    file_path = f"./uploads/{file_name}"
+    
+    response.stream_to_file(file_path)
+    return file_path
+
+
+
+
+# TODO: 이 아래 코드는 숫자만 추출하는 코드, 사용자가 원하는 색을 말했을 때 해당하는 색깔을 찾음(완)
 
 def extract_color_number(text):
     start_index = text.find('Color number: ') + len('Color number: ')
