@@ -122,22 +122,27 @@
 
     // 이미지를 캡쳐하는 함수
     function captureImage() {
-        const canvas = document.createElement('canvas');
-        canvas.width = $video.videoWidth;
-        canvas.height = $video.videoHeight;
-        const context = canvas.getContext('2d');
-        context.drawImage($video, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob(uploadCapturedImage, 'image/png');
-    }
-    // 캡쳐된 이미지를 서버로 업로드하는 함수
-    async function uploadCapturedImage(blob) {
-      const formData = new FormData();
-      formData.append('file', blob, 'capture.png'); // 'file' 키로 blob 데이터 추가
+      const video = document.getElementById("video")
+      const canvas = document.getElementById('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+            const formData = new FormData();
+            formData.append('file', blob, 'capture.png');
 
-      fetch('/transcribe_image', {
-        method: 'POST',
-        body: formData
-      })
+            fetch('/transcribe_image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Upload successful:', data);
+            })
+            .catch(error => {
+                console.error('Error uploading:', error);
+            });
+        }, 'image/png');
     }
 
     function toggleRecording() {

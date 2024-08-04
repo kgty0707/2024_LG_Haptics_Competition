@@ -28,7 +28,7 @@ async def transcribe_image(file: UploadFile = File(...)):
         image_path = "temp_image.png"
         with open(image_path, "wb") as image_file:
             image_file.write(image_data)
-
+        return JSONResponse(content={"message": "File uploaded successfully"})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
