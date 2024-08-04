@@ -13,7 +13,7 @@ if not my_api_key:
 
 router = APIRouter()
 
-client = OpenAI(api_key=my_api_key, base_url="https://api.openai.com/v1",)
+client = OpenAI(api_key=my_api_key, base_url="https://api.openai.com/v1/chat/completions",)
 
 class TranscriptionResult(BaseModel):
     text: str
