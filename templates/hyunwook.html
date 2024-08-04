@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Recorder</title>
+</head>
+
+<body>
+
+    <!-- 오디오 엘리먼트 -->
+    <audio controls></audio>
+    <!-- 녹음 버튼 -->
+    <button id="recordButton">녹음 시작</button>
+</body>
+
+<script>
+    // audio 엘리먼트 취득
+    const $audio = document.querySelector("audio");
+    const recordButton = document.getElementById('recordButton');
+    let mediaRecorder;
+    let recordedChunks = [];
+
+    // 마이크 MediaStream 취득(audio를 true로 설정)
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then((mediaStream) => {
+            // 마이크에서 입력받은 MediaStream으로 오디오 재생
+            $audio.srcObject = mediaStream;
+            $audio.onloadedmetadata = (event) => {
+                $audio.play();
+            };
+
+            // MediaRecorder 생성
+            mediaRecorder = new MediaRecorder(mediaStream);
+
+            // 데이터가 준비되었을 때 호출되는 이벤트 핸들러
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+
+            // 녹음이 멈췄을 때 호출되는 이벤트 핸들러
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+                recordedChunks = [];
+                uploadRecordedFile(blob);
+            };
+
+            // 녹음 버튼 클릭 이벤트 핸들러
+            recordButton.addEventListener('click', () => {
+                if (mediaRecorder.state === 'inactive') {
+                    mediaRecorder.start();
+                    recordButton.textContent = '녹음 중지';
+                } else if (mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                    recordButton.textContent = '녹음 시작';
+                }
+            });
+        })
+        .catch((err) => {
+            console.error(`에러 발생: ${err}`);
+        });
+
+    // 녹음된 파일을 서버로 업로드하는 함수
+    async function uploadRecordedFile(blob) {
+        const formData = new FormData();
+        formData.append('file', blob, 'recording.webm'); // Ensure the key name matches the server expectation
+
+        try {
+            const response = await fetch('http://localhost:8000/upload/', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('업로드 성공:', data);
+            } else {
+                console.error('업로드 실패:', response.statusText);
+            }
+        } catch (error) {
+            console.error('업로드 실패:', error);
+        }
+    }
+</script>
+
+</html>

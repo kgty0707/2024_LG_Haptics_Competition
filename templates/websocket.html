@@ -3,12 +3,29 @@
 
 <head>
     <title>WebSocket Client</title>
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-firestore.js"></script>
 </head>
 
 <body>
     <h1>WebSocket Client</h1>
     <div id="messages"></div>
-    <script>
+    <button id="sendButton">send</button>
+    <div id="positionTextDisplay"></div>
+    <script type="module">
+        import firebaseConfig from '/config/config.js';
+
+        firebase.initializeApp(firebaseConfig);
+
+        var database = firebase.database();
+
+        function writePositionData(value) {
+            firebase.database().ref('position/').set(value);
+        }
+
         const ws = new WebSocket("ws://localhost:8000/ws");
 
         ws.onopen = function () {
@@ -17,9 +34,27 @@
 
         ws.onmessage = function (event) {
             const messages = document.getElementById('messages');
-            const message = document.createElement('p');
-            message.textContent = "Server: " + event.data;
-            messages.appendChild(message);
+            const positionTextDisplay = document.getElementById('positionTextDisplay');
+
+            const messageElement = document.createElement('p');
+
+            const position = JSON.parse(event.data);
+            const positionText = position.text;
+            const positionData = position.data;
+
+            if (positionText) {
+                positionTextDisplay.textContent = "반가워요! " + positionText;
+                if (positionText === "True") {
+                    sendButton.disabled = true;
+                } else {
+                    sendButton.disabled = false;
+                }
+            }
+
+            messageElement.textContent = "Server: " + positionData;
+            messages.appendChild(messageElement);
+
+            writePositionData(positionData);
         };
 
         ws.onclose = function () {

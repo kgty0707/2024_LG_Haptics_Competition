@@ -33,6 +33,7 @@ def create_app():
     register(app, 'app.routes.model')
     register(app, 'app.routes.voice')
     register(app, 'app.routes.websocket')
+    register(app, 'app.routes.hyunwook')
     return app
 
 
