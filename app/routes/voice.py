@@ -13,7 +13,7 @@ if not my_api_key:
 
 router = APIRouter()
 
-client = OpenAI(api_key=my_api_key)
+client = OpenAI()
 
 class TranscriptionResult(BaseModel):
     text: str
