@@ -44,13 +44,6 @@ def main(request: Request):
         request=request
     )
 
-@router.get("/main")
-def hello(request: Request):
-    return templates.TemplateResponse(
-        name="second.html",
-        request=request
-    )
-
 @router.get("/main/second")
 def test(request: Request):
     return templates.TemplateResponse(
