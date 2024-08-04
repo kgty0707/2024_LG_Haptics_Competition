@@ -20,21 +20,26 @@ router = APIRouter()
 
 client = openai.OpenAI(api_key=api_key)
 
+@router.post("/transcribe_image")
+async def transcribe_image(file: UploadFile = File(...)):
+    try:
+        # 이미지 파일 저장
+        image_data = await file.read()
+        image_path = "temp_image.png"
+        with open(image_path, "wb") as image_file:
+            image_file.write(image_data)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/transcribe_audio")
-async def transcribe_audio(file: UploadFile = File(...), image: UploadFile = File(...)):
+async def transcribe_audio(file: UploadFile = File(...)):
     try:
         # 오디오 파일 저장
         audio_data = await file.read()
         audio_path = "temp_audio.wav"
         with open(audio_path, "wb") as audio_file:
             audio_file.write(audio_data)
-        
-        # 이미지 파일 저장
-        image_data = await file.read()
-        image_path = "temp_image.png"
-        with open(image_path, "wb") as image_file:
-            image_file.write(image_data)
         
         # OpenAI Whisper API를 사용하여 음성을 텍스트로 변환
         transcription = client.audio.transcriptions.create(

@@ -115,19 +115,29 @@
 
     questionImage.addEventListener('click', () => {
       if (stream) {
-        capturePhoto();
+        captureImage();
         toggleRecording();
       }
     });
 
-    function capturePhoto() {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imageData = canvas.toDataURL('image/png');
-      console.log('Photo captured:', imageData);
-      capturedImage.src = imageData;
-      capturedImage.style.display = 'block';
+    // 이미지를 캡쳐하는 함수
+    function captureImage() {
+        const canvas = document.createElement('canvas');
+        canvas.width = $video.videoWidth;
+        canvas.height = $video.videoHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage($video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(uploadCapturedImage, 'image/png');
+    }
+    // 캡쳐된 이미지를 서버로 업로드하는 함수
+    async function uploadCapturedImage(blob) {
+      const formData = new FormData();
+      formData.append('file', blob, 'capture.png'); // 'file' 키로 blob 데이터 추가
+
+      fetch('/transcribe_image', {
+        method: 'POST',
+        body: formData
+      })
     }
 
     function toggleRecording() {
@@ -146,13 +156,10 @@
           console.log('Recording stopped.');
           const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
 
-          // 캡쳐한 이미지 데이터 가져오기
-          const imageData = canvas.toDataURL('image/png');
 
           // 오디오 및 이미지 파일을 서버로 전송하여 STT 요청
           const formData = new FormData();
           formData.append('file', audioBlob, 'recording.wav');
-          formData.append('image', imageData);
 
           fetch('/transcribe_audio', {
             method: 'POST',
