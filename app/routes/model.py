@@ -5,7 +5,7 @@ from langchain.tools import BaseTool
 from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.agents import AgentExecutor, create_react_agent
-from search import search_by
+from app.routes.search import search_by
 from dotenv import load_dotenv
 from openai import OpenAI
 from websocket import update_condition_met
