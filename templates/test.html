@@ -106,9 +106,36 @@
 
     questionImage.addEventListener('click', () => {
       if (stream) {
+        capturePhoto();
         toggleRecording();
       }
     });
+
+    function capturePhoto() {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = canvas.toDataURL('image/png');
+      console.log('Photo captured:', imageData);
+      capturedImage.src = imageData;
+      capturedImage.style.display = 'block';
+
+      // 캡쳐한 이미지를 서버로 전송
+      fetch('/save_image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image: imageData })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Image saved:', data);
+      })
+      .catch(error => {
+        console.error('Error saving image:', error);
+      });
+    }
 
     function toggleRecording() {
       if (!isRecording) {
