@@ -7,11 +7,13 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 load_dotenv()
-api_key = os.getenv('GPT_API_KEY')
+my_api_key = os.getenv('GPT_API_KEY')
+if not my_api_key:
+    raise ValueError("API key is missing. Please set GPT_API_KEY in the environment variables.")
 
 router = APIRouter()
 
-client = OpenAI(api_key=api_key)
+client = OpenAI(api_key=my_api_key)
 
 class TranscriptionResult(BaseModel):
     text: str
@@ -41,7 +43,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
         
         return {"text": transcription['text']}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=501, detail=str(e))
         
 
 @router.post("/generate_gpt_response", response_model=GPTResponseResult)
@@ -57,10 +59,10 @@ async def generate_gpt_response(user_text: str):
                 {"role": "user", "content": prompt}
             ]
         )
-        gpt_text = gpt_response['choices'][0]['message']['content'].strip()
+        gpt_text = gpt_response.choices[0].message.content
         return {"gpt_text": gpt_text}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=502, detail=str(e))
         
 @router.post("/generate_audio", response_model=AudioResult)
 async def generate_audio(gpt_text: str):
@@ -76,5 +78,5 @@ async def generate_audio(gpt_text: str):
             f.write(speech_response['audio'])
         return {"audio_url": str(speech_file_path)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=503, detail=str(e))
     

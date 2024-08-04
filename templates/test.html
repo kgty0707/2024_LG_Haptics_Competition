@@ -136,6 +136,7 @@
           })
           .then(response => response.json())
           .then(data => {
+            console.log('Transcription Response:', data);
             userTranscription.textContent = `사용자: ${data.text}`;
             return fetch('/generate_gpt_response', {
               method: 'POST',
@@ -147,6 +148,7 @@
           })
           .then(response => response.json())
           .then(data => {
+            console.log('GPT Response:', data);
             gptTranscription.textContent = `GPT: ${data.gpt_text}`;
             return fetch('/generate_audio', {
               method: 'POST',
@@ -158,6 +160,7 @@
           })
           .then(response => response.json())
           .then(data => {
+            console.log('Audio Response:', data);
             const audioUrl = data.audio_url;
             audioPlayback.src = audioUrl;
             audioPlayback.classList.remove('hidden');
