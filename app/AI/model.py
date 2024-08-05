@@ -9,42 +9,38 @@ model = YOLO('./app/AI/best.pt')
 def detection_cosmatic(image):
     '''
     Input: 이미지,
-    Output: 화장품의 종류 (1, 2), 각 새도우의 바운딩 박스, 화장품의 앞 뒤 구별(?)
+    Output: 화장품의 종류 (1, 2), 각 새도우의 바운딩 박스
     '''
-    ...
-     # 이미지 추론
     results = model.predict(image)
 
-    
-    # 클래스와 바운딩 박스 저장 리스트 초기화
     pallete = None
-    shadow_boxes = []
+    shadow_boxes = {}
+
+    class_names = ["2_11", "2_12", "2_21","2_22","2_23", "2_31", "2_32","3_11", "3_12", "3_21", "3_22","pallete2", "pallete3"]
 
     # 결과에서 boxes 객체 추출
     boxes = results[0].boxes
 
     for box in boxes:
         bbox = box.xyxy[0]  # 바운딩 박스 좌표 (x1, y1, x2, y2)
-        class_id = int(box.cls[0])  # 클래스 ID
-        
-        # 좌표를 정수형으로 변환하여 사용
+        class_id = int(box.cls[0]) 
+     
         x1, y1, x2, y2 = [int(val.item()) for val in bbox]
         scaled_bbox = [x1, y1, x2, y2]
         
-        # 클래스 ID에 따른 처리
-        if class_id == 0:
-            pallete = "pallete2"
-        elif class_id == 1: 
-            pallete = "pallete1"
-        elif class_id == 2: 
-            shadow_boxes.append(scaled_bbox)
+        class_name = class_names[class_id]
+
+        if class_id == 11 or class_id == 12 :
+            pallete = class_name
+        else:
+            shadow_boxes[class_name] = scaled_bbox
     
     return pallete, shadow_boxes
 
 
 def detection_hand(image):
     '''
-    input : 이미지
+    input : 이미지 (cv2로 받아와야함)
     output : 검지손가락의 좌표
     '''
     
@@ -56,6 +52,8 @@ def detection_hand(image):
         min_tracking_confidence=0.5
     )
     
+    cx,cy = None, None 
+
     if image is not None:
 
         img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -66,6 +64,7 @@ def detection_hand(image):
                 index_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
                 h, w, _ = image.shape
                 cx, cy = int(index_finger_tip.x * w), int(index_finger_tip.y * h)
+                cy += 40
         else:
             print('손이 인식되지 않았습니다')
             
