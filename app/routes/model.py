@@ -22,7 +22,7 @@ if not api_key:
 llm = ChatOpenAI(
     openai_api_key=api_key,
     temperature=0,
-    model_name='gpt-3.5-turbo'
+    model_name='gpt-4o'
 )
 
 # TODO: HandModelTool(BaseTool), HapticGuidanceTool(BaseTool)의 모델 추론 결과 반환하는 부분 통일
@@ -110,7 +110,7 @@ def generate_response(model_result, query):
         verbose=True,
         return_intermediate_steps=True,
         handle_parsing_errors=True,
-        max_iterations=2,
+        max_iterations=1,
     )
 
     response = agent_executor.invoke({"input": f"{query}"})
@@ -133,6 +133,7 @@ def generate_response(model_result, query):
         return result
     else:
         return response["output"]
+    
 
 def generate_template(info):
     template = f'''You are an assistant who helps explain cosmetics for the blind. When you ask questions about colors or cosmetics, kindly explain them in Korean.
@@ -142,12 +143,12 @@ def generate_template(info):
 
     Detailed description of cosmetics: {info}
 
-    Question: {{input}}
-    Thought: {{agent_scratchpad}}
-    Action: the action to take, should be one of [{{tool_names}}] or 'None' if no action is needed
-    Action Input: the input to the action
-    Observation: the result of the action
-    Final Answer: the final answer to the original input question
+    Question: {{input}}.
+    Thought: {{agent_scratchpad}}.
+    Action: the action to take, should be one of [{{tool_names}}] or 'None' if no action is needed.
+    Action Input: the input to the action.
+    Observation: the result of the action.
+    Final Answer: the final answer to the original input question.
     '''
     
     prompt = PromptTemplate(input_variables=['agent_scratchpad', 'input', 'tool_names', 'tools'], template=template)
@@ -169,18 +170,16 @@ def tts(text_path):
     response = client.audio.speech.create(
         model="tts-1",
         voice="fable",
-        input=text_path
+        input=text_path,
+        speed=1.2
     )
-    # 현재 날짜와 시간을 기준으로 파일 이름 생성
+
     now = datetime.now()
     file_name = now.strftime("text_%Y%m%d_%H%M%S.wav")
     file_path = f"./uploads/{file_name}"
     
     response.stream_to_file(file_path)
     return file_path
-
-
-
 
 # TODO: 이 아래 코드는 숫자만 추출하는 코드, 사용자가 원하는 색을 말했을 때 해당하는 색깔을 찾음(완)
 

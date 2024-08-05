@@ -1,5 +1,6 @@
 let audioChunks = [];
 let mediaRecorder;
+let originalImageSrc;
 
 function startCamera() {
     const video = document.getElementById('video');
@@ -13,6 +14,9 @@ function startCamera() {
 }
 
 function startRecording() {
+    originalImageSrc = document.getElementById('recording').src;
+    document.getElementById('recording').src = "/static/images/질문중.png";
+    
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
             mediaRecorder = new MediaRecorder(stream);
@@ -22,28 +26,35 @@ function startRecording() {
 
             mediaRecorder.onstop = () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                const formData = new FormData();
                 const today = getTodayDateTimeString();
-                formData.append("audioFile", audioBlob, today + ".wav");
+                
+                captureImage().then(imageBlob => {
+                    const formData = new FormData();
+                    formData.append("audioFile", audioBlob, today + ".wav");
+                    formData.append("imageFile", imageBlob, today + ".png");
 
-                fetch('/upload_audio', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message === "Uploaded successfully") {
-                        document.getElementById('result').innerText = data.text;
-                    } else {
-                        document.getElementById('result').innerText = "Failed to upload audio";
-                    }
-                })
-                .catch(error => {
-                    console.error('Audio upload error:', error);
-                    document.getElementById('result').innerText = "Audio upload error.";
+                    fetch('/uploads', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message === "Uploaded successfully") {
+                            displayServerResponse(data.result || "서버에서 받은 응답이 없습니다.");
+                            playAudio(data.audio_url);
+                        } else {
+                            console.log("Failed to upload");
+                        }
+                        resetRecordingImage();
+                    })
+                    .catch(error => {
+                        console.error('Upload error:', error);
+                        console.log("Upload error.");
+                        resetRecordingImage();
+                    });
+
+                    audioChunks = [];
                 });
-
-                audioChunks = [];
             };
 
             mediaRecorder.start();
@@ -60,30 +71,13 @@ function stopRecording() {
 }
 
 function captureImage() {
-    const canvas = document.getElementById('canvas');
-    const video = document.getElementById('video');
-    const context = canvas.getContext('2d');
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const imageData = canvas.toDataURL('image/png');
-    const today = getTodayDateTimeString();
-    const formData = new FormData();
-    formData.append("imageFile", dataURLtoBlob(imageData), today + ".png");
-
-    fetch('/upload_image', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message === "Uploaded successfully") {
-            document.getElementById('result').innerText = "Image uploaded successfully";
-        } else {
-            document.getElementById('result').innerText = "Failed to upload image";
-        }
-    })
-    .catch(error => {
-        console.error('Image upload error:', error);
-        document.getElementById('result').innerText = "Image upload error.";
+    return new Promise((resolve, reject) => {
+        const canvas = document.getElementById('canvas');
+        const video = document.getElementById('video');
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.toDataURL('image/png');
+        resolve(dataURLtoBlob(imageData));
     });
 }
 
@@ -110,7 +104,31 @@ function getTodayDateTimeString() {
     return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
-document.getElementById('capture').addEventListener('click', captureImage);
+function displayServerResponse(responseText) {
+    const introText = document.getElementById('intro-text');
+    const questionsList = document.getElementById('questions-list');
+    const serverResponse = document.getElementById('server-response');
+
+    introText.style.display = 'none';
+    questionsList.style.display = 'none';
+    serverResponse.style.display = 'block';
+
+    responseText = responseText.replace(/\\n/g, '<br>');
+
+    serverResponse.innerHTML = marked.parse(responseText);
+}
+
+function playAudio(audioUrl) {
+    const audioPlayer = document.getElementById('audio-player');
+    audioPlayer.src = audioUrl;
+    audioPlayer.style.display = 'block';
+    audioPlayer.play();
+}
+
+function resetRecordingImage() {
+    document.getElementById('recording').src = originalImageSrc;
+}
+
 document.getElementById('recording').addEventListener('click', startRecording);
 
 window.onload = startCamera;

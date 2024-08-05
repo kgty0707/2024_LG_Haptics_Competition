@@ -16,55 +16,37 @@
     };
 
     ws.onmessage = function (event) {
-        const messages = document.getElementById('messages');
-        const positionTextDisplay = document.getElementById('positionTextDisplay');
-
-        const messageElement = document.createElement('p');
-
         const position = JSON.parse(event.data);
         const positionText = position.text;
         const positionData = position.data;
 
-        if (positionData == '7') {
-            captureImage('canvas', 'video')
-                .then(imageData => fetch(imageData))
-                .then(res => res.blob())
-                .then(blob => {
-                    const formData = new FormData();
-                    var today = getTodayDateTimeString();
-                    formData.append("imageFile", blob, today + ".png");
-
-                    fetch('/upload', {
-                        method: 'POST',
-                        body: formData
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.message === "Uploaded successfully") {
-                                document.getElementById('result').innerText = data.text;
-                            } else {
-                                document.getElementById('result').innerText = "Failed to upload";
-                            }
-                        })
-                        .catch(error => {
-                            console.error('업로드 중 오류 발생:', error);
-                            document.getElementById('result').innerText = "업로드 중 오류 발생.";
-                        });
-                });
-        }
+        const recordingElement = document.getElementById('recording');
 
         if (positionText) {
-            positionTextDisplay.textContent = "반가워요! " + positionText;
-            if (positionText === "True") {
-                sendButton.disabled = true;
-            } else {
-                sendButton.disabled = false;
+            // 기존 recording 요소를 숨기고 텍스트 요소를 추가
+            recordingElement.style.display = "none";
+            let textElement = document.getElementById('textRecording');
+            if (!textElement) {
+                textElement = document.createElement('p');
+                textElement.id = 'textRecording';
+                textElement.classList.add('black-han-sans-regular', 'fs-1', 'pt-3');
+                recordingElement.parentNode.insertBefore(textElement, recordingElement.nextSibling);
+            }
+            textElement.textContent = "Haptic Guidance가 실행돼요😊";
+
+            if (positionText === "False") {
+                captureImage().then(imageBlob => {
+                    ws.send(imageBlob);
+                });
             }
         }
-
-        messageElement.textContent = "Server: " + positionData;
-        messages.appendChild(messageElement);
-
+        if (positionData == "0") {
+            recordingElement.style.display = "block";
+            const textElement = document.getElementById('textRecording');
+            if (textElement) {
+                textElement.remove();
+            }
+        }
         writePositionData(positionData);
     };
 
@@ -75,4 +57,5 @@
     ws.onerror = function (error) {
         console.error("WebSocket error:", error);
     };
+
 </script>

@@ -50,18 +50,3 @@ def test(request: Request):
         name="makeup.html",
         request=request
     )
-
-@router.get("/main/test")
-def test(request: Request):
-    return templates.TemplateResponse(
-        name="test.html",
-        request=request
-    )
-
-@router.get("/arduino")
-async def test(request: Request):
-    return templates.TemplateResponse(
-        name="websocket.html",
-        context={"request": request}
-    )
-
