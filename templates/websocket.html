@@ -1,70 +1,78 @@
-<!DOCTYPE html>
-<html>
+<script type="module">
+    import firebaseConfig from '/config/config_mod.js';
 
-<head>
-    <title>WebSocket Client</title>
-    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-analytics.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-firestore.js"></script>
-</head>
+    firebase.initializeApp(firebaseConfig);
 
-<body>
-    <h1>WebSocket Client</h1>
-    <div id="messages"></div>
-    <button id="sendButton">send</button>
-    <div id="positionTextDisplay"></div>
-    <script type="module">
-        import firebaseConfig from '/config/config_mod.js';
+    var database = firebase.database();
 
-        firebase.initializeApp(firebaseConfig);
+    function writePositionData(value) {
+        firebase.database().ref('position/').set(value);
+    }
 
-        var database = firebase.database();
+    const ws = new WebSocket("ws://localhost:8000/ws");
 
-        function writePositionData(value) {
-            firebase.database().ref('position/').set(value);
+    ws.onopen = function () {
+        console.log("WebSocket connection opened");
+    };
+
+    ws.onmessage = function (event) {
+        const messages = document.getElementById('messages');
+        const positionTextDisplay = document.getElementById('positionTextDisplay');
+
+        const messageElement = document.createElement('p');
+
+        const position = JSON.parse(event.data);
+        const positionText = position.text;
+        const positionData = position.data;
+
+        if (positionData == '7') {
+            captureImage('canvas', 'video')
+                .then(imageData => fetch(imageData))
+                .then(res => res.blob())
+                .then(blob => {
+                    const formData = new FormData();
+                    var today = getTodayDateTimeString();
+                    formData.append("imageFile", blob, today + ".png");
+
+                    fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.message === "Uploaded successfully") {
+                                document.getElementById('result').innerText = data.text;
+                            } else {
+                                document.getElementById('result').innerText = "Failed to upload";
+                            }
+                        })
+                        .catch(error => {
+                            console.error('업로드 중 오류 발생:', error);
+                            document.getElementById('result').innerText = "업로드 중 오류 발생.";
+                        });
+                });
         }
 
-        const ws = new WebSocket("ws://localhost:8000/ws");
-
-        ws.onopen = function () {
-            console.log("WebSocket connection opened");
-        };
-
-        ws.onmessage = function (event) {
-            const messages = document.getElementById('messages');
-            const positionTextDisplay = document.getElementById('positionTextDisplay');
-
-            const messageElement = document.createElement('p');
-
-            const position = JSON.parse(event.data);
-            const positionText = position.text;
-            const positionData = position.data;
-
-            if (positionText) {
-                positionTextDisplay.textContent = "반가워요! " + positionText;
-                if (positionText === "True") {
-                    sendButton.disabled = true;
-                } else {
-                    sendButton.disabled = false;
-                }
+        if (positionText) {
+            positionTextDisplay.textContent = "반가워요! " + positionText;
+            if (positionText === "True") {
+                sendButton.disabled = true;
+            } else {
+                sendButton.disabled = false;
             }
+        }
 
-            messageElement.textContent = "Server: " + positionData;
-            messages.appendChild(messageElement);
+        messageElement.textContent = "Server: " + positionData;
+        messages.appendChild(messageElement);
 
-            writePositionData(positionData);
-        };
+        writePositionData(positionData);
+    };
 
-        ws.onclose = function () {
-            console.log("WebSocket connection closed");
-        };
+    ws.onclose = function () {
+        console.log("WebSocket connection closed");
+    };
 
-        ws.onerror = function (error) {
-            console.error("WebSocket error:", error);
-        };
-    </script>
-</body>
-
-</html>
+    ws.onerror = function (error) {
+        console.error("WebSocket error:", error);
+    };
+</script>

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}질문하기 - Ms. 메이크{% endblock %}
+
+{% block content %}
+<script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-firestore.js"></script>
+
+<video id="video" width="640" height="480" autoplay></video>
+<canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+<p id="result"></p>
+
+<div class="card p-4">
+    <div class="text-center mb-4">
+        <img id="recording" src="/static/images/질문하기.jpg" alt="Ms. 메이크 아바타" class="img-fluid">
+    </div>
+    <div class="card-body pb-0">
+        <p class="text-muted text-center">메이크업 아티스트 Ms. 메이크에게 물어보세요.</p>
+        <ul class="list-unstyled text-muted text-center">
+            <li class="mb-2">“분홍색 섀도우 위치 어딨어?”</li>
+            <li class="mb-2">“섀도우 색 설명해줘”</li>
+            <li class="mb-2">“오른쪽 첫번째 섀도우 색은 뭐야?”</li>
+        </ul>
+    </div>
+</div>
+{% include 'websocket.html' %}
+<script src="/static/js/video.js"></script>
+{% endblock %}

@@ -26,6 +26,7 @@ llm = ChatOpenAI(
 )
 
 # TODO: HandModelTool(BaseTool), HapticGuidanceTool(BaseTool)의 모델 추론 결과 반환하는 부분 통일
+# TODO: 모델 설명 스크립트 작성하기
 
 class HandModelTool(BaseTool):
     '''
@@ -76,8 +77,7 @@ class HapticGuidanceTool(BaseTool):
     
     def _run(self, text: str) -> str:
         update_condition_met(True)
-        print("True************************************************")
-        return "120초간의 대기가 완료되었습니다."
+        return "*******************True******************"
 
     def _arun(self, text: str):
         raise NotImplementedError("This tool does not support async")

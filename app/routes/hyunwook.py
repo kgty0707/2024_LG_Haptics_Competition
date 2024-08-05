@@ -14,29 +14,33 @@ def sanitize_filename(filename: str) -> str:
 
 
 @router.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(audioFile: UploadFile = File(...), imageFile: UploadFile = File(...)):
     upload_dir = "uploads"
     if not os.path.exists(upload_dir):
         os.makedirs(upload_dir)
 
-    sanitized_filename = sanitize_filename(f"audio_{file.filename}")
+    # 오디오 파일 저장
+    sanitized_audio_filename = sanitize_filename(f"audio_{audioFile.filename}")
+    audio_file_path = os.path.join(upload_dir, sanitized_audio_filename)
+    with open(audio_file_path, "wb") as f:
+        f.write(await audioFile.read())
 
-    file_path = os.path.join(upload_dir, sanitized_filename)
-    
-    with open(file_path, "wb") as f:
-        f.write(await file.read())
+    # 이미지 파일 저장
+    sanitized_image_filename = sanitize_filename(f"image_{imageFile.filename}")
+    image_file_path = os.path.join(upload_dir, sanitized_image_filename)
+    with open(image_file_path, "wb") as f:
+        f.write(await imageFile.read())
 
-    text = stt(file_path)
+    # 음성 인식 수행
+    text = stt(audio_file_path)
 
-    # TODO: model_result 실제 추론 결과로 변경
+    # 모델 결과를 사용하여 응답 생성
     model_result = {'palette_num': "Palette1"}
     print(text)
-
     result = generate_response(model_result, text)
     print(f"모델 출력: {result}")
     
     return JSONResponse(content={"message": "Uploaded successfully", "text": text})
-
 
 @router.get("/hyunwook")
 async def client(request: Request):

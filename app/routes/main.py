@@ -44,10 +44,10 @@ def main(request: Request):
         request=request
     )
 
-@router.get("/main/second")
+@router.get("/makeup")
 def test(request: Request):
     return templates.TemplateResponse(
-        name="second.html",
+        name="makeup.html",
         request=request
     )
 

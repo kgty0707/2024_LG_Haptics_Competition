@@ -32,7 +32,6 @@ async def websocket_endpoint(websocket: WebSocket):
 
 async def monitor_conditions(websocket: WebSocket):
     while True:
-        print("뭐지 진짜로")
         await asyncio.sleep(5)
         if check_condition():
             await haptic_guidance(websocket)
@@ -54,12 +53,11 @@ async def haptic_guidance(websocket: WebSocket):
 
     update_condition_met(False)
 
-    # TODO: User가 (말로) 선택한 바운딩 박스 좌표만 가져오는 알고리즘 필요
-    # 바운딩 박스 리스트에서 인덱스를 기준으로 뽑아오는게 편함. GPT 이용X
-    # 첫번째 = "1"번 인덱스, But 천번째. 첫번쨰와 같은 경우 인식 안 됨.
-    # 몇번째에 무슨 색이 있는 지 추출하는 Tool도 추가해야 할 듯...... 오반데
-    x1_min, y1_min, x1_max, y1_max = get_model1_bbox()
-    x2, y2 = get_model2_coords()
+    # TODO: User가 (말로) 선택한 바운딩 박스 좌표만 가져오는 알고리즘 필요(완 -> model.py에 존재 연결 아직 안함)
+    
+    # image = 
+    # x1_min, y1_min, x1_max, y1_max = get_model1_bbox(image)
+    # x2, y2 = get_model2_coords(image)
 
     print(f"Initial model1_bbox: {(x1_min, y1_min, x1_max, y1_max)}")
     print(f"Initial model2_coords: {(x2, y2)}")
