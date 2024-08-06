@@ -11,6 +11,15 @@ body {
   font-style: normal;
 }
 
+.bg-purple {
+  background-color: #9070A1;
+}
+
+.text-purple {
+  color: #9070A1;
+}
+
+
 .font-weight-light {
   font-weight: 300;
 }
@@ -32,7 +41,7 @@ body {
   overflow-y: auto;
 }
 .fixed-height {
-  height: 600px; /* Set the desired fixed height */
+  height: 600px;
 }
 .flex-fill-height {
   display: flex;
@@ -50,14 +59,10 @@ body {
   overflow-y: auto;
 }
 
-/* 좌우 반전 및 기본 비디오 스타일 */
 #video {
   transform: scaleX(-1);
-  /* 좌우 반전 */
   max-width: 100%;
-  /* 반응형 크기 조정 */
   height: auto;
-  /* 반응형 크기 조정 */
 }
 
 .text-pink {
@@ -66,7 +71,6 @@ body {
 
 .header-section h2 {
   color: #ffcee6;
-  /* 핑크색 */
   margin-bottom: 0;
 }
 
@@ -80,7 +84,6 @@ body {
 .divider {
   height: 2px;
   background-color: #ffcee6;
-  /* 핑크색 */
   width: 100%;
   margin: 10px 0;
 }

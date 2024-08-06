@@ -10,6 +10,7 @@ def create_app():
     app = FastAPI()
     app.mount("/static", StaticFiles(directory="static"), name="static")
     app.mount("/config", StaticFiles(directory="."), name="config")
+    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
     app.add_middleware(
         CORSMiddleware,
@@ -31,7 +32,7 @@ def create_app():
     
     register(app, 'app.routes.main')
     register(app, 'app.routes.model')
-    register(app, 'app.routes.voice')
+    register(app, 'app.routes.inference')
     register(app, 'app.routes.websocket')
     return app
 

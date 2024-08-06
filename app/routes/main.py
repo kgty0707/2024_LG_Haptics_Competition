@@ -44,31 +44,9 @@ def main(request: Request):
         request=request
     )
 
-@router.get("/main")
-def hello(request: Request):
-    return templates.TemplateResponse(
-        name="second.html",
-        request=request
-    )
-
-@router.get("/main/second")
+@router.get("/makeup")
 def test(request: Request):
     return templates.TemplateResponse(
-        name="second.html",
+        name="makeup.html",
         request=request
     )
-
-@router.get("/main/test")
-def test(request: Request):
-    return templates.TemplateResponse(
-        name="test.html",
-        request=request
-    )
-
-@router.get("/arduino")
-async def test(request: Request):
-    return templates.TemplateResponse(
-        name="websocket.html",
-        context={"request": request}
-    )
-

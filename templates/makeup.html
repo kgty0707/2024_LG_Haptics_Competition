@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}질문하기 - Ms. 메이크{% endblock %}
+
+{% block content %}
+<script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-firestore.js"></script>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+<div class="card p-4 m-2">
+    <video id="video" width="480" height="360" autoplay></video>
+    <canvas id="canvas" width="480" height="360" style="display:none;"></canvas>
+</div>
+
+<div class="card p-4 m-2">
+    <div class="text-center mb-4">
+        <img id="recording" src="/static/images/질문하기.jpg" alt="Ms. 메이크 아바타" class="img-fluid">
+    </div>
+    <div class="card-body">
+        <div id="intro-text" class="text-center black-han-sans-regular fs-1 mb-5">메이크업 아티스트 <span
+                class="text-purple">Ms.
+                메이크</span>에게<br> 화면에 보인 화장품에 대해물어봐요!</div>
+        <ul id="questions-list" class=" black-han-sans-regular fs-3 list-unstyled text-purple text-center">
+            <li class="mb-2 ">“분홍색 섀도우 위치 어딨어?”</li>
+            <li class="mb-2">“섀도우 색 설명해줘”</li>
+            <li class="mb-2">“오른쪽 첫번째 섀도우 색은 뭐야?”</li>
+        </ul>
+        <div id="server-response" class="black-han-sans-regular fs-3 text-center text-purple" style="display: none;">
+        </div>
+        <div>
+            <audio id="audio-player" style="display:none;"></audio>
+        </div>
+    </div>
+</div>
+{% include 'websocket.html' %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="/static/js/video.js"></script>
+{% endblock %}

@@ -1,35 +1,61 @@
-<!DOCTYPE html>
-<html>
+<script type="module">
+    import firebaseConfig from '/config/config_mod.js';
 
-<head>
-    <title>WebSocket Client</title>
-</head>
+    firebase.initializeApp(firebaseConfig);
 
-<body>
-    <h1>WebSocket Client</h1>
-    <div id="messages"></div>
-    <script>
-        const ws = new WebSocket("ws://localhost:8000/ws");
+    var database = firebase.database();
 
-        ws.onopen = function () {
-            console.log("WebSocket connection opened");
-        };
+    function writePositionData(value) {
+        firebase.database().ref('position/').set(value);
+    }
 
-        ws.onmessage = function (event) {
-            const messages = document.getElementById('messages');
-            const message = document.createElement('p');
-            message.textContent = "Server: " + event.data;
-            messages.appendChild(message);
-        };
+    const ws = new WebSocket("ws://localhost:8000/ws");
 
-        ws.onclose = function () {
-            console.log("WebSocket connection closed");
-        };
+    ws.onopen = function () {
+        console.log("WebSocket connection opened");
+    };
 
-        ws.onerror = function (error) {
-            console.error("WebSocket error:", error);
-        };
-    </script>
-</body>
+    ws.onmessage = function (event) {
+        const position = JSON.parse(event.data);
+        const positionText = position.text;
+        const positionData = position.data;
 
-</html>
+        const recordingElement = document.getElementById('recording');
+
+        if (positionText) {
+            // 기존 recording 요소를 숨기고 텍스트 요소를 추가
+            recordingElement.style.display = "none";
+            let textElement = document.getElementById('textRecording');
+            if (!textElement) {
+                textElement = document.createElement('p');
+                textElement.id = 'textRecording';
+                textElement.classList.add('black-han-sans-regular', 'fs-1', 'pt-3');
+                recordingElement.parentNode.insertBefore(textElement, recordingElement.nextSibling);
+            }
+            textElement.textContent = "Haptic Guidance가 실행돼요😊";
+
+            if (positionText === "False") {
+                captureImage().then(imageBlob => {
+                    ws.send(imageBlob);
+                });
+            }
+        }
+        if (positionData == "0") {
+            recordingElement.style.display = "block";
+            const textElement = document.getElementById('textRecording');
+            if (textElement) {
+                textElement.remove();
+            }
+        }
+        writePositionData(positionData);
+    };
+
+    ws.onclose = function () {
+        console.log("WebSocket connection closed");
+    };
+
+    ws.onerror = function (error) {
+        console.error("WebSocket error:", error);
+    };
+
+</script>
