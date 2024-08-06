@@ -4,25 +4,27 @@
 
 {% block content %}
 <!-- Profile Section -->
-<div class="card my-5 bg-light-danger">
+<div class="card mb-5 bg-light-danger">
   <div class="text-center my-4">
     <img src="/static/images/찡긋 메이크.jpg" alt="Ms. 메이크" class="img-fluid rounded-circle" style="max-width: 200px;">
-    <h1 class="black-han-sans-regular mt-4">Ms. 메이크</h1>
+    <h1 class="do-hyeon-regular mt-4">Ms. 메이크</h1>
   </div>
 </div>
 
 <!-- Content Cards -->
 <div class="card my-5">
-  <div class="col-md-4 d-flex align-items-stretch justify-content-center">
-    <a href="makeup" class="d-flex w-100 h-100">
-      <img src="/static/images/나만의 메이크업.jpg" class="card-img-top img-fluid w-100 h-100" alt="나만의 메이크업">
-    </a>
-  </div>
+  <a href="makeup" class="btn btn-light-danger py-12 px-8 d-flex justify-content-between align-items-center text-start">
+    <span class="fs-2qx do-hyeon-regular ">메이크와 함께하는<br><span class="fs-4x text-black">나만의
+        메이크업</span></span>
+    <img src="/static/images/나만의 메이크업 아이콘.png" alt="메이크업 이미지" style="height: 80px;">
+  </a>
 </div>
 
 <div class="card my-5">
-  <div class="col-md-4 d-flex align-items-stretch justify-content-center">
-    <img src="/static/images/특별한 메이크업.jpg" class="card-img-top img-fluid w-100 h-100" alt="특별한 메이크업">
-  </div>
+  <a href="makeup" class="btn btn-light-danger py-12 px-8 d-flex justify-content-between align-items-center text-start">
+    <span class="fs-2qx do-hyeon-regular">메이크가 알려주는<br><span class="fs-4x text-black">특별한
+        메이크업</span></span>
+    <img src="/static/images/특별한 메이크업 아이콘.png" alt="메이크업 이미지" style="height: 80px;">
+  </a>
 </div>
 {% endblock %}
