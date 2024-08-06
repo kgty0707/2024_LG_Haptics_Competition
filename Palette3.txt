@@ -11,7 +11,7 @@
 
 진저오렌지 (Ginger Orange)
 Color: 연한 진저 오렌지 (Light Ginger Orange)
-Description: 드러운 베이지 톤에 약간의 오렌지 빛이 섞인 색상으로,베이스 컬러로 사용하기 좋음
+Description: 부드러운 베이지 톤에 약간의 오렌지 빛이 섞인 색상으로,베이스 컬러로 사용하기 좋음
 자연스럽고 은은한 느낌
 
 오렌지필 (Orange Peel)
