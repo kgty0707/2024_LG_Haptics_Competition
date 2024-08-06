@@ -1,9 +1,6 @@
-# 원 페이지로 작동하는 라우터를 구현하는 파일입니다.
-
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import HTMLResponse
 from app.common.util import register
 
 def create_app():

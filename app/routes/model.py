@@ -1,16 +1,15 @@
 import os
-import time
-
+import re
+from langchain.pydantic_v1 import Field
 from langchain.tools import BaseTool
 from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.agents import AgentExecutor, create_react_agent
-from app.routes.websocket import update_condition_met
+from app.routes.websocket import update_condition_met, update_input_query
 from app.routes.search import search_by
 from dotenv import load_dotenv
 from openai import OpenAI
 from datetime import datetime
-import re
 
 load_dotenv()
 
@@ -57,6 +56,7 @@ class HandModelTool(BaseTool):
         손 위치 인식하고 바운딩 박스와 비교하기
         주어진 (x, y) 좌표가 어떤 바운딩 박스에 속하는지 확인하는 알고리즘
         TODO: 각 바운딩 박스를 for문으로 돌면서 해당하는 위치를 추출 (완)
+        TODO: 인덱스를 못찾았을 경우 핸들링
         '''
         bbox_index = self.find_bbox_for_point(x, y, bboxes)
         return bbox_index
@@ -74,7 +74,7 @@ class HapticGuidanceTool(BaseTool):
     '''
     name = "Haptic Guidance Tool"
     description = "Haptic Guidance Tool"
-    
+
     def _run(self, text: str) -> str:
         update_condition_met(True)
         return "*******************True******************"
@@ -116,6 +116,7 @@ def generate_response(model_result, query):
     response = agent_executor.invoke({"input": f"{query}"})
     print(response)
 
+    update_input_query(query, info)
     
     if response["output"] == "Agent stopped due to iteration limit or time limit.":
         intermediate_steps = response["intermediate_steps"]
@@ -171,7 +172,7 @@ def tts(text_path):
         model="tts-1",
         voice="fable",
         input=text_path,
-        speed=1.2
+        # speed=1.2
     )
 
     now = datetime.now()
@@ -181,52 +182,15 @@ def tts(text_path):
     response.stream_to_file(file_path)
     return file_path
 
-# TODO: 이 아래 코드는 숫자만 추출하는 코드, 사용자가 원하는 색을 말했을 때 해당하는 색깔을 찾음(완)
+# def get_pallete_bbox(image_path):
+#     image_path = 0
+#     results = get_model_result(image_path)
 
-def extract_color_number(text):
-    start_index = text.find('Color number: ') + len('Color number: ')
-    end_index = text.find('\n', start_index)
-    if end_index == -1:
-        end_index = len(text)
-    return text[start_index:end_index].strip()
+#     select_num = int(select_cosmatic_num(query, info))
 
-def select_cosmatic_num(query, info):
+#     result =  {"select_cordinates": results["cordinates"][select_num]}
 
-    messages = [
-        {
-            "role": "system",
-            "content": "You are an assistant."
-        },
-        {
-            "role": "user",
-            "content": (
-                f"Please identify the color names and their corresponding numbers from the palette."
-                f"Take your time. First, write down the color name, then write down its corresponding number."
-                f"Use the provided info to find the color names and numbers."
-                f"If you can't find the number for a color in the provided info, output 0.\n\n"
-                f"The user might ask for the color in different ways, such as:"
-                f"'Find the last color in the first row', 'I want the last color in the first row', 'The first color in the last row looks delicious'."
-                f"Please interpret these queries correctly and provide the corresponding color name and number.\n\n"
-                f"info: {info}\n"
-                f"question: {query}\n"
-                f"answer:\n"
-                f"Color name: [name]\n"
-                f"Color number: [number]\n"
-                f"Ensure that the color number matches the color name from the info."
-            )
-        }
-    ]
-    print('prompt: ', messages)
-
-    response = client.chat.completions.create(
-        model='gpt-4o-mini',
-        messages=messages,
-        temperature=0
-    )
-    response_message = response.choices[0].message.content
-    color_number = extract_color_number(response_message)
-    print(color_number)
-    return print(response_message)
+#     return result
 
 
 # model_result = {'palette_num': "Palette1"}

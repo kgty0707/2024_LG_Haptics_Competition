@@ -1,8 +1,10 @@
 # 아름이 모델 추론 결과 반환
 from ultralytics import YOLO
+import random
 
 # 모델 로드 (.pt 파일 있는 경로로 나중에 수정 )
 model = YOLO('./app/AI/best.pt')
+hand_model = ""
 
 def detection_cosmatic(image):
     '''
@@ -47,3 +49,40 @@ def detection_hand(image):
     '''
     ...
     return
+
+
+# TODO: User가 (말로) 선택한 바운딩 박스 좌표만 가져오는 알고리즘 필요
+# TODO: Inference.py로 옮기기
+
+
+def get_model_result(image_path):
+    image_path = 0
+    # results = model.predict(image_path)
+
+    return "results"
+
+
+def get_pallete_index(image_path):
+    image_path = 0
+    # results = get_model_result(image_path)
+
+    # result =  {'palette_num': results['pallete']}
+
+    return {'palette_num': "Palette1"}
+
+
+def get_pallete_bbox(image_path):
+    image_path = 0
+
+    return (4, 4, 5, 5)
+
+
+def get_hand_coords(image_path):
+    image_path = 0
+    # results = hand_model.predict(image_path)
+
+    # result =  {"cordinates": results["cordinates"]}
+
+    return (random.randint(0, 1), random.randint(0, 1))
+
+
