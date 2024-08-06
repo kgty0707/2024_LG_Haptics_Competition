@@ -1,5 +1,6 @@
 # 아름이 모델 추론 결과 반환
 from ultralytics import YOLO
+from PIL import Image
 from mediapipe import mp
 import cv2
 
@@ -8,9 +9,11 @@ model = YOLO('./app/AI/best.pt')
 
 def detection_cosmatic(image):
     '''
-    Input: 이미지,
-    Output: 화장품의 종류 (1, 2), 각 새도우의 바운딩 박스
+    Input: 이미지 경로
+    Output: 화장품의 종류, 각 새도우의 바운딩 박스
     '''
+
+    image = Image.open(image)
     results = model.predict(image)
 
     pallete = None
@@ -40,10 +43,11 @@ def detection_cosmatic(image):
 
 def detection_hand(image):
     '''
-    input : 이미지 (cv2로 받아와야함)
+    input : 이미지 경로
     output : 검지손가락의 좌표
     '''
-    
+    image = cv2.imread(image)
+
     mp_hands = mp.solutions.hands
 
     hands = mp_hands.Hands(
