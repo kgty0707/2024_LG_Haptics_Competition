@@ -1,7 +1,5 @@
 let audioChunks = [];
 let mediaRecorder;
-let originalImageSrc;
-let originalText;
 
 function startCamera() {
     const video = document.getElementById('video');
@@ -18,11 +16,8 @@ function startRecording() {
     var imgElement = document.getElementById('recording-img');
     var textElement = document.getElementById('recording-text');
 
-    originalImageSrc = imgElement.src;
-    originalText = textElement.textContent;
-
-    imgElement.src = "/static/images/찡긋 메이크.png";
-    textElement.textContent = "답변을 생성하고 있어요🎶";
+    imgElement.src = "/static/images/무표정 메이크.png";
+    textElement.textContent = "답변 받기🎶";
     
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
@@ -72,9 +67,13 @@ function startRecording() {
 }
 
 function stopRecording() {
+    var imgElement = document.getElementById('recording-img');
+    var textElement = document.getElementById('recording-text');
+
+    imgElement.src = "/static/images/찡긋 메이크.png";
+    textElement.textContent = "답변을 생성하고 있어요🎶";
+
     mediaRecorder.stop();
-    document.getElementById('recording').removeEventListener('click', stopRecording);
-    document.getElementById('recording').addEventListener('click', startRecording);
 }
 
 function captureImage() {
@@ -123,6 +122,15 @@ function displayServerResponse(responseText) {
     responseText = responseText.replace(/\\n/g, '<br>');
 
     serverResponse.innerHTML = marked.parse(responseText);
+
+    var imgElement = document.getElementById('recording-img');
+    var textElement = document.getElementById('recording-text');
+
+    imgElement.src = "/static/images/웃는 메이크.png";
+    textElement.textContent = "질문하기";
+
+    document.getElementById('recording').removeEventListener('click', stopRecording);
+    document.getElementById('recording').addEventListener('click', startRecording);
 }
 
 function playAudio(audioUrl) {

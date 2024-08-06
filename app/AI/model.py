@@ -1,24 +1,22 @@
 # 아름이 모델 추론 결과 반환
 from ultralytics import YOLO
-
 from PIL import Image
-from mediapipe import mp
+# from mediapipe import mp
 import cv2
-
+import random
 
 # 모델 로드 
 model = YOLO('./app/AI/best.pt')
-hand_model = ""
 
 def detection_cosmatic(image):
     '''
     Input: 이미지 경로
     Output: 화장품의 종류, 각 새도우의 바운딩 박스
     '''
-
+    image = "./uploads/test.png"
     image = Image.open(image)
     results = model.predict(image)
-
+    print("\n\n\n\n모델 출력: ", results)
     pallete = None
     shadow_boxes = {}
 
@@ -79,41 +77,3 @@ def detection_hand(image):
     hands.close()
     
     return cx,cy
-
-
-
-# TODO: User가 (말로) 선택한 바운딩 박스 좌표만 가져오는 알고리즘 필요
-# TODO: Inference.py로 옮기기
-
-
-def get_model_result(image_path):
-    image_path = 0
-    # results = model.predict(image_path)
-
-    return "results"
-
-
-def get_pallete_index(image_path):
-    image_path = 0
-    # results = get_model_result(image_path)
-
-    # result =  {'palette_num': results['pallete']}
-
-    return {'palette_num': "Palette1"}
-
-
-def get_pallete_bbox(image_path):
-    image_path = 0
-
-    return (4, 4, 5, 5)
-
-
-def get_hand_coords(image_path):
-    image_path = 0
-    # results = hand_model.predict(image_path)
-
-    # result =  {"cordinates": results["cordinates"]}
-
-    return (random.randint(0, 1), random.randint(0, 1))
-
-

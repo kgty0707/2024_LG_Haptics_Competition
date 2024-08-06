@@ -1,7 +1,8 @@
 from fastapi.templating import Jinja2Templates
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
 from datetime import datetime
-from app.AI.model import get_pallete_bbox, get_hand_coords
+from app.AI.model import detection_cosmatic, detection_hand
+
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -71,15 +72,9 @@ def check_condition():
 async def haptic_guidance(websocket: WebSocket):
     global input_query
     query, info = input_query
-    print("사용자 인풋********************", query, info)
 
-    # TODO: 아래 함수 select_cosmatic_num에서 추출한 번호 대로 바운딩 박스 리스트에서 섀도우 번호 추출하기
-    select_cosmatic_num(query, info)
-
-    """
-    TODO: Timeout 되면 진동 울리는 로직 추가(완)
-    TODO: Check value 전역 변수 설정(완), True 될 때 질문하기 버튼 비활성화
-    """
+    pallete_index = select_cosmatic_num(query, info)
+    
     upload_dir = "uploads"
 
     message = json.dumps({"text": "True", "data": ""})
@@ -100,9 +95,17 @@ async def haptic_guidance(websocket: WebSocket):
         with open(image_path, "wb") as buffer:
             buffer.write(image_data)
         print(f"Image saved to {image_path}")
-    
-    x1_min, y1_min, x1_max, y1_max = get_pallete_bbox(image_path)
-    x2, y2 = get_hand_coords(image_path)
+
+    _, boxes = detection_cosmatic(image_path)
+    boxes = sorted(boxes.items())
+
+    x2, y2 = detection_hand(image_path)
+
+    if x2 is None or y2 is None or boxes is None:
+        return print("햅틱 가이던스 도중 인식하지 못한 좌표값이 있어요")
+
+    x1_min, y1_min, x1_max, y1_max = boxes[pallete_index][1]
+
 
     print(f"Initial model1_bbox: {(x1_min, y1_min, x1_max, y1_max)}")
     print(f"Initial model2_coords: {(x2, y2)}")
@@ -137,8 +140,14 @@ async def haptic_guidance(websocket: WebSocket):
                 buffer.write(image_data)
             print(f"Image saved to {image_path}")
 
-        x1_min, y1_min, x1_max, y1_max = get_pallete_bbox(image_path)
-        x2, y2 = get_hand_coords(image_path)
+        _, boxes = detection_cosmatic(image_path)
+        boxes = sorted(boxes.items())
+        x2, y2 = detection_hand(image_path)
+
+        if x2 is None or y2 is None or boxes is None:
+            return print("햅틱 가이던스 도중 인식하지 못한 좌표값이 있어요")
+
+        x1_min, y1_min, x1_max, y1_max = boxes[pallete_index][1]
 
         if x2 > x1_max: # 오른쪽
             message = json.dumps({"text": "", "data": 4})

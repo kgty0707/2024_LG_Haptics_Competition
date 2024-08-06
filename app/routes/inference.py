@@ -1,6 +1,7 @@
 from fastapi import File, UploadFile, APIRouter
 from app.routes.model import stt, tts, generate_response
-from app.AI.model import get_hand_coords, get_pallete_index
+from app.AI.model import detection_cosmatic
+
 
 import os
 
@@ -26,17 +27,16 @@ async def upload(audioFile: UploadFile = File(...), imageFile: UploadFile = File
     with open(image_path, "wb") as buffer:
         buffer.write(imageFile.file.read())
 
-    # 음성 인식 수행
     user_text = stt(audio_path)
 
-    # 모델 결과를 사용하여 응답 생성
-    # TODO: 이미지 인식 결과로 얻은 팔레트 종류 필요
-    model_index = get_pallete_index(image_path)
-
+    model_index, _ = detection_cosmatic(image_path)
     print(user_text)
 
-    result = generate_response(model_index, user_text)
-    print(f"모델 출력: {result}")
+    if model_index is None:
+        result = "팔레트를 인식하지 못했어요. 다시 시도해주세요."
+    else:
+        result = generate_response(model_index, user_text)
+        print(f"모델 출력: {result}")
 
     audio = tts(result)
 
