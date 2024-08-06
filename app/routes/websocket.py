@@ -1,12 +1,19 @@
 from fastapi.templating import Jinja2Templates
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
 from datetime import datetime
+from app.AI.model import get_pallete_bbox, get_hand_coords
+from dotenv import load_dotenv
+from openai import OpenAI
 
 import time
 import random
 import asyncio
 import json
 import os
+
+load_dotenv()
+
+api_key = os.getenv('GPT_API_KEY')
 
 router = APIRouter()
 
@@ -19,10 +26,21 @@ async def client(request: Request):
 
 connected_clients = []
 condition_met = False
+input_query = []
 
 def update_condition_met(value: bool):
     global condition_met
     condition_met = value
+
+
+def update_input_query(query: str, info: str):
+    global input_query
+    input_query = [query, info]
+
+
+def init_input_query():
+    global input_query
+    input_query = []
 
 
 @router.websocket("/ws")
@@ -51,6 +69,13 @@ def check_condition():
     
 
 async def haptic_guidance(websocket: WebSocket):
+    global input_query
+    query, info = input_query
+    print("사용자 인풋********************", query, info)
+
+    # TODO: 아래 함수 select_cosmatic_num에서 추출한 번호 대로 바운딩 박스 리스트에서 섀도우 번호 추출하기
+    select_cosmatic_num(query, info)
+
     """
     TODO: Timeout 되면 진동 울리는 로직 추가(완)
     TODO: Check value 전역 변수 설정(완), True 될 때 질문하기 버튼 비활성화
@@ -60,6 +85,7 @@ async def haptic_guidance(websocket: WebSocket):
     message = json.dumps({"text": "True", "data": ""})
     await websocket.send_text(message)
 
+    init_input_query()
     update_condition_met(False)
 
     # TODO: User가 (말로) 선택한 바운딩 박스 좌표만 가져오는 알고리즘 필요(완 -> model.py에 존재 연결 아직 안함)
@@ -75,8 +101,8 @@ async def haptic_guidance(websocket: WebSocket):
             buffer.write(image_data)
         print(f"Image saved to {image_path}")
     
-    x1_min, y1_min, x1_max, y1_max = get_model1_bbox(image_path)
-    x2, y2 = get_model2_coords(image_path)
+    x1_min, y1_min, x1_max, y1_max = get_pallete_bbox(image_path)
+    x2, y2 = get_hand_coords(image_path)
 
     print(f"Initial model1_bbox: {(x1_min, y1_min, x1_max, y1_max)}")
     print(f"Initial model2_coords: {(x2, y2)}")
@@ -111,8 +137,8 @@ async def haptic_guidance(websocket: WebSocket):
                 buffer.write(image_data)
             print(f"Image saved to {image_path}")
 
-        x1_min, y1_min, x1_max, y1_max = get_model1_bbox(image_path)
-        x2, y2 = get_model2_coords(image_path)
+        x1_min, y1_min, x1_max, y1_max = get_pallete_bbox(image_path)
+        x2, y2 = get_hand_coords(image_path)
 
         if x2 > x1_max: # 오른쪽
             message = json.dumps({"text": "", "data": 4})
@@ -141,20 +167,53 @@ async def haptic_guidance(websocket: WebSocket):
     await websocket.send_text(message)
 
 
-# TODO: User가 (말로) 선택한 바운딩 박스 좌표만 가져오는 알고리즘 필요
-# TODO: Inference.py로 옮기기
-def get_model1_bbox(image_path):
-    image_path = 0
-    '''
-    모델1의 경계 상자를 반환하는 함수
-    이 함수는 임시로 고정된 값을 반환하지만 실제로는 모델의 추론 결과를 반환해야 함
-    '''
-    return (4, 4, 5, 5)
+client = OpenAI(api_key=api_key)
 
-def get_model2_coords(image_path):
-    image_path = 0
-    '''
-    모델2의 좌표값을 추론해서 반환하는 함수
-    이 함수는 임시로 랜덤값을 반환하지만 실제로는 모델의 추론 결과를 반환해야 함
-    '''
-    return (random.randint(0, 1), random.randint(0, 1))
+
+# TODO: 이 아래 코드는 숫자만 추출하는 코드, 사용자가 원하는 색을 말했을 때 해당하는 색깔을 찾음(완)
+
+def extract_color_number(text):
+    start_index = text.find('Color number: ') + len('Color number: ')
+    end_index = text.find('\n', start_index)
+    if end_index == -1:
+        end_index = len(text)
+    return text[start_index:end_index].strip()
+
+
+def select_cosmatic_num(query, info):
+    messages = [
+        {
+            "role": "system",
+            "content": "You are an assistant."
+        },
+        {
+            "role": "user",
+            "content": (
+                f"Please identify the color names and their corresponding numbers from the palette."
+                f"Take your time. First, write down the color name, then write down its corresponding number."
+                f"Use the provided info to find the color names and numbers."
+                f"If you can't find the number for a color in the provided info, output 0.\n\n"
+                f"The user might ask for the color in different ways, such as:"
+                f"'Find the last color in the first row', 'I want the last color in the first row', 'The first color in the last row looks delicious'."
+                f"Please interpret these queries correctly and provide the corresponding color name and number.\n\n"
+                f"If the question is '살구색 찾고 싶은데 햅틱 가이던스 실행시켜줘', identify the color number for 살구색 and include a message saying: '살구색에 해당하는 색상 번호 하나를 적어주세요.'\n\n"
+                f"info: {info}\n"
+                f"question: {query}\n"
+                f"answer:\n"
+                f"Color name: [name]\n"
+                f"Color number: [number]\n"
+                f"Ensure that the color number matches the color name from the info."
+            )
+        }
+    ]
+    print('prompt: ', messages)
+
+    response = client.chat.completions.create(
+        model='gpt-4o-mini',
+        messages=messages,
+        temperature=0
+    )
+    response_message = response.choices[0].message.content
+    color_number = extract_color_number(response_message)
+    print('\n\n\n\n\n\n\n최종 색상:', color_number)
+    return color_number
