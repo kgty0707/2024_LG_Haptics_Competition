@@ -171,7 +171,7 @@ def tts(text_path):
         model="tts-1",
         voice="fable",
         input=text_path,
-        speed=1.2
+        # speed=1.2
     )
 
     now = datetime.now()

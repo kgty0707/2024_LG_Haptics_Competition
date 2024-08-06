@@ -10,29 +10,36 @@
 <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-firestore.js"></script>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 
-<div class="card p-4 m-2">
+<div class="card p-4">
     <video id="video" width="480" height="360" autoplay></video>
     <canvas id="canvas" width="480" height="360" style="display:none;"></canvas>
 </div>
 
-<div class="card p-4 m-2">
-    <div class="text-center mb-4">
+<!-- <div class="card m-4 bg-light-danger justify-content-center">
+    <div>
         <img id="recording" src="/static/images/질문하기.jpg" alt="Ms. 메이크 아바타" class="img-fluid">
     </div>
-    <div class="card-body">
-        <div id="intro-text" class="text-center black-han-sans-regular fs-1 mb-5">메이크업 아티스트 <span
-                class="text-purple">Ms.
-                메이크</span>에게<br> 화면에 보인 화장품에 대해물어봐요!</div>
-        <ul id="questions-list" class=" black-han-sans-regular fs-3 list-unstyled text-purple text-center">
-            <li class="mb-2 ">“분홍색 섀도우 위치 어딨어?”</li>
-            <li class="mb-2">“섀도우 색 설명해줘”</li>
-            <li class="mb-2">“오른쪽 첫번째 섀도우 색은 뭐야?”</li>
-        </ul>
-        <div id="server-response" class="black-han-sans-regular fs-3 text-center text-purple" style="display: none;">
-        </div>
-        <div>
-            <audio id="audio-player" style="display:none;"></audio>
-        </div>
+</div> -->
+
+<div id="recording" class="card my-4">
+    <a class="btn btn-light-danger px-8 d-flex flex-column justify-content-center align-items-center text-start">
+        <img id="recording-img" src="/static/images/웃는 메이크.png" alt="메이크업 이미지" style="height: 150px;">
+        <span id="recording-text" class="fs-3x do-hyeon-regular text-black mt-2">질문하기</span>
+    </a>
+</div>
+
+<div class="card p-4 my-4 do-hyeon-regular">
+    <div id="intro-text" class="fs-1 mb-5">🤩 메이크업 아티스트 Ms.
+        메이크에게<br> 화면에 보인 화장품에 대해 물어볼까요?🔊</div>
+    <ul id="questions-list" class="fs-3 list-unstyled text-center text-muted">
+        <li class="mb-2 ">분홍색 섀도우 위치 어딨어?</li>
+        <li class="mb-2">섀도우 색 설명해줘</li>
+        <li class="mb-2">오른쪽 첫번째 섀도우 색은 뭐야?</li>
+    </ul>
+    <div id="server-response" class="fs-3" style="display: none;">
+    </div>
+    <div>
+        <audio id="audio-player" style="display:none;"></audio>
     </div>
 </div>
 {% include 'websocket.html' %}
