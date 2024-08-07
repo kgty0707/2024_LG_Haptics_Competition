@@ -69,7 +69,7 @@ class HapticGuidanceTool(BaseTool):
 
     def _run(self, text: str) -> str:
         update_condition_met(True)
-        return "\n*******************True******************\n"
+        return "햅틱 가이던스가 진행중이에요!🔊"
 
     def _arun(self, text: str):
         raise NotImplementedError("This tool does not support async")
@@ -129,7 +129,7 @@ def generate_response(model_index, query):
     
 
 def generate_template(info):
-    template = f'''You are an assistant who helps explain cosmetics for the blind. When you ask questions about colors or cosmetics, kindly explain them in Korean.
+    template = f'''You are an assistant who helps explain cosmetics for the blind. When you ask questions about colors or cosmetics, kindly explain them in Korean. Your name is "Ms. 메이크".
 
     You have access to the following tools, but you do not have to use them if not necessary:
     {{tools}}

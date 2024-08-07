@@ -40,11 +40,17 @@
                 });
             }
         }
-        if (positionData == "0") {
+        if (positionData == "0" || "9") {
             recordingElement.style.display = "block";
             const textElement = document.getElementById('textRecording');
             if (textElement) {
                 textElement.remove();
+            }
+            if (positionData == "9") {
+                const serverResponse = document.getElementById('server-response');
+                if (serverResponse) {
+                    serverResponse.innerText = "인식하지 못한 좌표값이 있어요🥺";
+                }
             }
         }
         writePositionData(positionData);

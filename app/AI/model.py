@@ -1,9 +1,8 @@
 # 아름이 모델 추론 결과 반환
 from ultralytics import YOLO
 from PIL import Image
-# from mediapipe import mp
+import mediapipe as mp
 import cv2
-import random
 
 # 모델 로드 
 model = YOLO('./app/AI/best.pt')
@@ -16,7 +15,6 @@ def detection_cosmatic(image):
     image = "./uploads/test.png"
     image = Image.open(image)
     results = model.predict(image)
-    print("\n\n\n\n모델 출력: ", results)
     pallete = None
     shadow_boxes = {}
 
@@ -39,6 +37,7 @@ def detection_cosmatic(image):
         else:
             shadow_boxes[class_name] = scaled_bbox
     
+    print("\n\n\n\n모델 출력: ", pallete, shadow_boxes)
     return pallete, shadow_boxes
 
 
