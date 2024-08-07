@@ -27,7 +27,7 @@ async def upload(audioFile: UploadFile = File(...), imageFile: UploadFile = File
         buffer.write(imageFile.file.read())
 
     user_text = stt(audio_path)
-    model_index, _ = detection_cosmatic(image_path)
+    model_index, _, _ = detection_cosmatic(image_path)
     print(user_text)
 
     if model_index is None:
