@@ -10,15 +10,16 @@ model = YOLO('./app/AI/best.pt')
 def detection_cosmatic(image):
     '''
     Input: 이미지 경로
-    Output: 화장품의 종류, 각 새도우의 바운딩 박스
+    Output: 화장품의 종류, 손가락 위치, 각 새도우의 바운딩 박스
     '''
-    image = "./uploads/test.png"
+    
     image = Image.open(image)
     results = model.predict(image)
     pallete = None
+    finger = None
     shadow_boxes = {}
 
-    class_names = ["2_11", "2_12", "2_21","2_22","2_23", "2_31", "2_32","3_11", "3_12", "3_21", "3_22","pallete2", "pallete3"]
+    class_names = ["2_11", "2_12", "2_21", "2_22", "2_23", "2_31", "2_32", "3_11", "3_12", "3_21", "3_22", "finger", "pallete2", "pallete3"]
 
     # 결과에서 boxes 객체 추출
     boxes = results[0].boxes
@@ -32,13 +33,17 @@ def detection_cosmatic(image):
         
         class_name = class_names[class_id]
 
-        if class_id == 11 or class_id == 12 :
+        if class_id == 12 or class_id == 13 :
             pallete = class_name
+            
+        elif class_id == 11 : # 손가락 좌표
+            center_x = (x1 + x2) // 2
+            center_y = (y1 + y2) // 2
+            finger = [center_x, center_y]
         else:
             shadow_boxes[class_name] = scaled_bbox
     
-    print("\n\n\n\n모델 출력: ", pallete, shadow_boxes)
-    return pallete, shadow_boxes
+    return pallete, finger, shadow_boxes
 
 
 def detection_hand(image):
