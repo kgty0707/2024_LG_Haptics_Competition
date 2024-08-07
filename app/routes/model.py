@@ -7,6 +7,7 @@ from langchain.prompts import PromptTemplate
 from langchain.agents import AgentExecutor, create_react_agent
 from app.routes.websocket import update_condition_met, update_input_query
 from app.routes.search import search_by
+from app.AI.model import detection_hand, detection_cosmatic
 from dotenv import load_dotenv
 from openai import OpenAI
 from datetime import datetime
@@ -31,38 +32,29 @@ class HandModelTool(BaseTool):
     '''
     손 위치 인식, 원본 이미지와 손가락 위치 비교해야 할 때 사용
     예시: 지금 내가 가르키고 있는 색 무슨 색이야?
-
-    TODO: 이 클래서에서
-    hand_model(self, x, y, bboxes)의 input bboxes: 바운딩 박스 리스트, x, y: hand model 좌표
-
     '''
     name = "Hand Model Tool"
-    description = "This is a hand model tool."
+    description = "This is a Hand Model Tool. It is used to recognize hand positions and determine which color the hand is pointing to."
 
-    # 특정 점이 바운딩 박스 내부에 있는지 확인하는 함수
     def is_point_in_bbox(self, x, y, bbox):
         x_min, y_min, x_max, y_max = bbox
         return x_min <= x <= x_max and y_min <= y <= y_max
 
-    # 주어진 점이 어떤 바운딩 박스에 있는지 찾는 함수
     def find_bbox_for_point(self, x, y, bboxes):
         for i, bbox in enumerate(bboxes):
             if self.is_point_in_bbox(x, y, bbox):
                 return i
         return None
 
-    def hand_model(self, x, y, bboxes):
-        '''
-        손 위치 인식하고 바운딩 박스와 비교하기
-        주어진 (x, y) 좌표가 어떤 바운딩 박스에 속하는지 확인하는 알고리즘
-        TODO: 각 바운딩 박스를 for문으로 돌면서 해당하는 위치를 추출 (완)
-        TODO: 인덱스를 못찾았을 경우 핸들링
-        '''
-        bbox_index = self.find_bbox_for_point(x, y, bboxes)
-        return bbox_index
-
-    def _run(self, text: str) -> str:
-        return "Hand model tool executed."
+    def _run(self, x, y, bboxes):
+        image = find_latest_image("./uploads")
+        x, y = detection_hand(f"./uploads/{image}")
+        _, bboxes = detection_cosmatic(f"./uploads/{image}")
+        if x is None or y is None or bboxes is None:
+            return "무슨 색을 가르키고 있는 지 못찾았어요😭"
+        else:
+            bbox_index = self.find_bbox_for_point(x, y, bboxes)
+            return bbox_index + "번째 색을 가르키고 있어요😊"
 
     def _arun(self, text: str):
         raise NotImplementedError("This tool does not support async")
@@ -73,11 +65,11 @@ class HapticGuidanceTool(BaseTool):
     HapticGuidanceTool을 실행
     '''
     name = "Haptic Guidance Tool"
-    description = "Haptic Guidance Tool"
+    description = "This is a Haptic Guidance Tool. It is useful for helping the user bring their hand closer to the desired color. It is used to indicate which color my hand wants to use."
 
     def _run(self, text: str) -> str:
         update_condition_met(True)
-        return "*******************True******************"
+        return "\n*******************True******************\n"
 
     def _arun(self, text: str):
         raise NotImplementedError("This tool does not support async")
@@ -94,8 +86,8 @@ class AddHeartTool(BaseTool):
         raise NotImplementedError("This tool does not support async")
 
 
-def generate_response(model_result, query):
-    info = search_by(model_result['palette_num'])
+def generate_response(model_index, query):
+    info = search_by(model_index)
 
     prompt_template = generate_template(info)
     print("Prompt Template:", prompt_template)
@@ -182,25 +174,9 @@ def tts(text_path):
     response.stream_to_file(file_path)
     return file_path
 
-# def get_pallete_bbox(image_path):
-#     image_path = 0
-#     results = get_model_result(image_path)
-
-#     select_num = int(select_cosmatic_num(query, info))
-
-#     result =  {"select_cordinates": results["cordinates"][select_num]}
-
-#     return result
-
-
-# model_result = {'palette_num': "Palette1"}
-# generate_response(model_result, "쿠션 글리터로 쓸만한 색은 몇번째에 있어?")
-
-
-queries = [
-    "첫번째 줄에 마지막 색 찾고 싶어",
-]
-
-# # 각 query에 대한 테스트
-# for query in queries:
-#     select_cosmatic_num(query, search_by("Palette1"))
+def find_latest_image(directory):
+    png_files = [f for f in os.listdir(directory) if f.endswith('.png')]
+    png_files.sort()
+    latest_file = png_files[-1] if png_files else None
+    
+    return latest_file
