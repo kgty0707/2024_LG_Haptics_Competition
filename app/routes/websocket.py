@@ -102,9 +102,11 @@ async def haptic_guidance(websocket: WebSocket):
     x2, y2 = detection_hand(image_path)
 
     if x2 is None or y2 is None or boxes is None:
+        message = json.dumps({"text": "", "data": 9})
+        await websocket.send_text(message)
         return print("햅틱 가이던스 도중 인식하지 못한 좌표값이 있어요")
 
-    x1_min, y1_min, x1_max, y1_max = boxes[pallete_index][1]
+    x1_min, y1_min, x1_max, y1_max = boxes[pallete_index-1][1]
 
 
     print(f"Initial model1_bbox: {(x1_min, y1_min, x1_max, y1_max)}")
@@ -145,9 +147,11 @@ async def haptic_guidance(websocket: WebSocket):
         x2, y2 = detection_hand(image_path)
 
         if x2 is None or y2 is None or boxes is None:
+            message = json.dumps({"text": "", "data": 9})
+            await websocket.send_text(message)
             return print("햅틱 가이던스 도중 인식하지 못한 좌표값이 있어요")
 
-        x1_min, y1_min, x1_max, y1_max = boxes[pallete_index][1]
+        x1_min, y1_min, x1_max, y1_max = boxes[pallete_index-1][1]
 
         if x2 > x1_max: # 오른쪽
             message = json.dumps({"text": "", "data": 4})
@@ -225,4 +229,4 @@ def select_cosmatic_num(query, info):
     response_message = response.choices[0].message.content
     color_number = extract_color_number(response_message)
     print('\n\n\n\n\n\n\n최종 색상:', color_number)
-    return color_number
+    return int(color_number)
