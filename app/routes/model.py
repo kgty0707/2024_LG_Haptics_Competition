@@ -92,7 +92,7 @@ def generate_response(model_index, query):
     prompt_template = generate_template(info)
     print("Prompt Template:", prompt_template)
 
-    tools = [AddHeartTool(), HapticGuidanceTool()]
+    tools = [HandModelTool(), AddHeartTool(), HapticGuidanceTool()]
 
     agent = create_react_agent(llm, tools, prompt_template)
 
@@ -112,20 +112,43 @@ def generate_response(model_index, query):
     
     if response["output"] == "Agent stopped due to iteration limit or time limit.":
         intermediate_steps = response["intermediate_steps"]
-
         text = str(intermediate_steps[0][0])
-        pattern = r"log='(.+)'"
-
-        match = re.search(pattern, text)
-
-        if match:
-            result = match.group(1)
+        tool_answer = intermediate_steps[0][1]
+        pattern1 = r"log='(.+)'"
+        pattern2 = r"Final Answer= \n(.+)"
+        pattern3 = r"Final Answer=(.+)"
+        pattern4 = r"Final Answer:(.+)"
+        match1 = re.search(pattern1, text)
+        match2 = re.search(pattern2, text)
+        match3 = re.search(pattern3, text)
+        match4 = re.search(pattern4, text)
+        if tool_answer != "Invalid or incomplete response" and tool_answer != "None is not a valid tool, try one of [Hand Model Tool, Add Heart Tool, Haptic Guidance Tool]." and tool_answer != "Invalid Format: Missing 'Action:' after 'Thought:":
+            result = tool_answer
+        elif tool_answer == "None is not a valid tool, try one of [Hand Model Tool, Add Heart Tool, Haptic Guidance Tool].":
+            result = "AI Agent에서 추출할 수 있는 답변이 없어요."
+        elif tool_answer == "Invalid Format: Missing 'Action:' after 'Thought:":
+            result = "AI Agent에서 추출할 수 있는 답변이 없어요."
+        elif tool_answer == "Invalid or incomplete response":
+            result = "AI Agent에서 추출할 수 있는 답변이 없어요."
+        elif match2:
+            result = match2.group(1)
+        elif match3:
+            result = match3.group(1)
+        elif match4:
+            result = match4.group(1)
+        elif match1:
+            result = match1.group(1)
         else:
             result = "AI Agent에서 추출할 수 있는 답변이 없어요."
-        
         return result
     else:
         return response["output"]
+
+
+
+
+
+
     
 
 def generate_template(info):
@@ -139,9 +162,9 @@ def generate_template(info):
     Question: {{input}}.
     Thought: {{agent_scratchpad}}.
     Action: the action to take, should be one of [{{tool_names}}] or 'None' if no action is needed.
-    Action Input: the input to the action.
-    Observation: the result of the action.
-    Final Answer: the final answer to the original input question.
+    Action Input: Provide the necessary input for the action.
+    Observation: Describe the outcome of the action.
+    Final Answer: the final answer to the original input question. A Final Answer must always be provided. regardless of the availability of tools.
     '''
     
     prompt = PromptTemplate(input_variables=['agent_scratchpad', 'input', 'tool_names', 'tools'], template=template)
