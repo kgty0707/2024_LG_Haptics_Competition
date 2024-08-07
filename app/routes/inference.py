@@ -2,7 +2,6 @@ from fastapi import File, UploadFile, APIRouter
 from app.routes.model import stt, tts, generate_response
 from app.AI.model import detection_cosmatic
 
-
 import os
 
 router = APIRouter()
@@ -28,7 +27,6 @@ async def upload(audioFile: UploadFile = File(...), imageFile: UploadFile = File
         buffer.write(imageFile.file.read())
 
     user_text = stt(audio_path)
-
     model_index, _ = detection_cosmatic(image_path)
     print(user_text)
 

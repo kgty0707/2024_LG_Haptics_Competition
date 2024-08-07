@@ -1,13 +1,8 @@
-import os
-
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
 
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, JSONResponse
-from app.routes.model import generate_response
-from app.AI.model import detection_cosmatic, detection_hand
-
+from fastapi.responses import HTMLResponse
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")

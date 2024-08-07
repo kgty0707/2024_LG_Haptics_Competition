@@ -1,11 +1,13 @@
 # 아름이 모델 추론 결과 반환
 from ultralytics import YOLO
 from PIL import Image
-import mediapipe as mp
-import cv2
 
-# 모델 로드 
+import torch
+
+device = torch.device('cpu')
+
 model = YOLO('./app/AI/best.pt')
+model.to(device)
 
 def detection_cosmatic(image):
     '''
@@ -44,40 +46,3 @@ def detection_cosmatic(image):
             shadow_boxes[class_name] = scaled_bbox
     
     return pallete, finger, shadow_boxes
-
-
-def detection_hand(image):
-    '''
-    input : 이미지 경로
-    output : 검지손가락의 좌표
-    '''
-
-    image = cv2.imread(image)
-
-    mp_hands = mp.solutions.hands
-
-    hands = mp_hands.Hands(
-        max_num_hands=1,
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5
-    )
-    
-    cx,cy = None, None 
-
-    if image is not None:
-
-        img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        result = hands.process(img_rgb)
-
-        if result.multi_hand_landmarks:
-            for hand_landmarks in result.multi_hand_landmarks:
-                index_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
-                h, w, _ = image.shape
-                cx, cy = int(index_finger_tip.x * w), int(index_finger_tip.y * h)
-                cy += 40
-        else:
-            print('손이 인식되지 않았습니다')
-            
-    hands.close()
-    
-    return cx,cy

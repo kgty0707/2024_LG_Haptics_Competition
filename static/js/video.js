@@ -123,12 +123,6 @@ function displayServerResponse(responseText) {
 
     serverResponse.innerHTML = marked.parse(responseText);
 
-    var imgElement = document.getElementById('recording-img');
-    var textElement = document.getElementById('recording-text');
-
-    imgElement.src = "/static/images/웃는 메이크.png";
-    textElement.textContent = "질문하기";
-
     document.getElementById('recording').removeEventListener('click', stopRecording);
     document.getElementById('recording').addEventListener('click', startRecording);
 }
@@ -144,8 +138,8 @@ function resetRecordingImage() {
     var imgElement = document.getElementById('recording-img');
     var textElement = document.getElementById('recording-text');
 
-    imgElement.src = originalImageSrc;
-    textElement.textContent = originalText;
+    imgElement.src = "/static/images/웃는 메이크.png";
+    textElement.textContent = "질문하기";
 }
 
 document.getElementById('recording').addEventListener('click', startRecording);

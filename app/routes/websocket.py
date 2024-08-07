@@ -1,13 +1,12 @@
 from fastapi.templating import Jinja2Templates
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
 from datetime import datetime
-from app.AI.model import detection_cosmatic, detection_hand
+from app.AI.model import detection_cosmatic
 
 from dotenv import load_dotenv
 from openai import OpenAI
 
 import time
-import random
 import asyncio
 import json
 import os
@@ -96,17 +95,20 @@ async def haptic_guidance(websocket: WebSocket):
             buffer.write(image_data)
         print(f"Image saved to {image_path}")
 
-    _, boxes = detection_cosmatic(image_path)
-    boxes = sorted(boxes.items())
-
-    x2, y2 = detection_hand(image_path)
+    _, finger, boxes = detection_cosmatic(image_path)
+    x2, y2 = finger
 
     if x2 is None or y2 is None or boxes is None:
         message = json.dumps({"text": "", "data": 9})
         await websocket.send_text(message)
         return print("햅틱 가이던스 도중 인식하지 못한 좌표값이 있어요")
 
-    x1_min, y1_min, x1_max, y1_max = boxes[pallete_index-1][1]
+    if pallete_index in boxes:
+        x1_min, y1_min, x1_max, y1_max = boxes.get(pallete_index)
+    else:
+        message = json.dumps({"text": "", "data": 9})
+        await websocket.send_text(message)
+        return print("손가락에 해당하는 팔레트를 인식하지 못함")
 
 
     print(f"Initial model1_bbox: {(x1_min, y1_min, x1_max, y1_max)}")
@@ -142,16 +144,15 @@ async def haptic_guidance(websocket: WebSocket):
                 buffer.write(image_data)
             print(f"Image saved to {image_path}")
 
-        _, boxes = detection_cosmatic(image_path)
-        boxes = sorted(boxes.items())
-        x2, y2 = detection_hand(image_path)
+        _, finger, boxes = detection_cosmatic(image_path)
+        x2, y2 = finger
 
         if x2 is None or y2 is None or boxes is None:
             message = json.dumps({"text": "", "data": 9})
             await websocket.send_text(message)
             return print("햅틱 가이던스 도중 인식하지 못한 좌표값이 있어요")
 
-        x1_min, y1_min, x1_max, y1_max = boxes[pallete_index-1][1]
+        x1_min, y1_min, x1_max, y1_max = boxes.get(pallete_index)
 
         if x2 > x1_max: # 오른쪽
             message = json.dumps({"text": "", "data": 4})
@@ -210,6 +211,7 @@ def select_cosmatic_num(query, info):
                 f"'Find the last color in the first row', 'I want the last color in the first row', 'The first color in the last row looks delicious'."
                 f"Please interpret these queries correctly and provide the corresponding color name and number.\n\n"
                 f"If the question is '살구색 찾고 싶은데 햅틱 가이던스 실행시켜줘', identify the color number for 살구색 and include a message saying: '살구색에 해당하는 색상 번호 하나를 적어주세요.'\n\n"
+                f"Note that '3_12' refers to the second color in the first row, '3_22' refers to the second color in the second row, and '3_31' refers to the first color in the third row.\n\n"
                 f"info: {info}\n"
                 f"question: {query}\n"
                 f"answer:\n"
@@ -229,4 +231,4 @@ def select_cosmatic_num(query, info):
     response_message = response.choices[0].message.content
     color_number = extract_color_number(response_message)
     print('\n\n\n\n\n\n\n최종 색상:', color_number)
-    return int(color_number)
+    return color_number

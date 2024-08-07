@@ -7,7 +7,7 @@ from langchain.prompts import PromptTemplate
 from langchain.agents import AgentExecutor, create_react_agent
 from app.routes.websocket import update_condition_met, update_input_query
 from app.routes.search import search_by
-from app.AI.model import detection_hand, detection_cosmatic
+from app.AI.model import detection_cosmatic
 from dotenv import load_dotenv
 from openai import OpenAI
 from datetime import datetime
@@ -36,29 +36,32 @@ class HandModelTool(BaseTool):
     name = "Hand Model Tool"
     description = "This is a Hand Model Tool. It is used to recognize hand positions and determine which color the hand is pointing to."
 
-    def is_point_in_bbox(self, x, y, bbox):
-        x_min, y_min, x_max, y_max = bbox
-        return x_min <= x <= x_max and y_min <= y <= y_max
-
-    def find_bbox_for_point(self, x, y, bboxes):
-        for i, bbox in enumerate(bboxes):
-            if self.is_point_in_bbox(x, y, bbox):
-                return i
+    def find_key_with_coordinates(self, data, x, y):
+        for key, value in data.items():
+            x1, y1, x2, y2 = value
+            if x1 <= x <= x2 and y1 <= y <= y2:
+                return key
         return None
-
-    def _run(self, x, y, bboxes):
+    
+    def _run(self, text: str):
         image = find_latest_image("./uploads")
-        x, y = detection_hand(f"./uploads/{image}")
-        _, bboxes = detection_cosmatic(f"./uploads/{image}")
+        print("image_path 확인", image)
+        _, finger, bboxes = detection_cosmatic(f"./uploads/{image}")
+        
+        x, y = finger
+
         if x is None or y is None or bboxes is None:
             return "무슨 색을 가르키고 있는 지 못찾았어요😭"
         else:
-            bbox_index = self.find_bbox_for_point(x, y, bboxes)
-            return bbox_index + "번째 색을 가르키고 있어요😊"
+            bbox_key = self.find_key_with_coordinates(bboxes, x, y)
+            if bbox_key is None:  
+                return "무슨 색을 가르키고 있는 지 못찾았어요😭"
+            else:
+                _, _, line, select = bbox_key
+                return f"{line}번째줄에 {select}번째 색을 가르키고 있어요😊"
 
     def _arun(self, text: str):
         raise NotImplementedError("This tool does not support async")
-
 
 class HapticGuidanceTool(BaseTool):
     '''
@@ -144,12 +147,6 @@ def generate_response(model_index, query):
     else:
         return response["output"]
 
-
-
-
-
-
-    
 
 def generate_template(info):
     template = f'''You are an assistant who helps explain cosmetics for the blind. When you ask questions about colors or cosmetics, kindly explain them in Korean. Your name is "Ms. 메이크".
