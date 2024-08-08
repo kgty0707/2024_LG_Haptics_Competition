@@ -40,7 +40,7 @@ def detection_cosmatic(image):
             
         elif class_id == 11 : # 손가락 좌표
             center_x = (x1 + x2) // 2
-            center_y = (y1 + y2) // 2
+            center_y = y2
             finger = [center_x, center_y]
         else:
             shadow_boxes[class_name] = scaled_bbox
