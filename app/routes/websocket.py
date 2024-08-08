@@ -96,26 +96,30 @@ async def haptic_guidance(websocket: WebSocket):
         print(f"Image saved to {image_path}")
 
     _, finger, boxes = detection_cosmatic(image_path)
-    x2, y2 = finger
 
-    if x2 is None or y2 is None or boxes is None:
-        message = json.dumps({"text": "", "data": 9})
+    if finger is None:
+            message = json.dumps({"text": "finger_out", "data": 0})
+            await websocket.send_text(message)
+            return print("손가락이 사라졌어요. 한 손 가락을 핀 상태로 다시 시작해주세요.")
+    elif boxes is None:
+        message = json.dumps({"text": "pallte_out", "data": 0})
         await websocket.send_text(message)
-        return print("햅틱 가이던스 도중 인식하지 못한 좌표값이 있어요")
+        return print("손으로 가려져서 팔레트를 인식하지 못한 것 같아요. 팔레트 아래에서 다시 시작해주세요.")
 
     if pallete_index in boxes:
         x1_min, y1_min, x1_max, y1_max = boxes.get(pallete_index)
     else:
-        message = json.dumps({"text": "", "data": 9})
+        message = json.dumps({"text": "hide_pallete", "data": 0})
         await websocket.send_text(message)
-        return print("손가락에 해당하는 팔레트를 인식하지 못함")
+        return print("해당하는 섀도우 색상을 손으로 가리신 것 같아요. 팔레트 아래에서 다시 시작해주세요.")
 
+    x2, y2 = finger
 
     print(f"Initial model1_bbox: {(x1_min, y1_min, x1_max, y1_max)}")
     print(f"Initial model2_coords: {(x2, y2)}")
 
     start_time = time.time()
-    timeout = 10  # 10초 타임아웃
+    timeout = 18
 
     message = json.dumps({"text": "햅틱 가이던스가 시작돼요!", "data": ""})
     await websocket.send_text(message)
@@ -145,31 +149,41 @@ async def haptic_guidance(websocket: WebSocket):
             print(f"Image saved to {image_path}")
 
         _, finger, boxes = detection_cosmatic(image_path)
+
+        if finger is None:
+            message = json.dumps({"text": "finger_out", "data": 0})
+            await websocket.send_text(message)
+            return print("손가락이 사라졌어요. 한 손 가락을 핀 상태로 다시 시작해주세요.")
+        elif boxes is None:
+            message = json.dumps({"text": "pallte_out", "data": 0})
+            await websocket.send_text(message)
+            return print("손으로 가려져서 팔레트를 인식하지 못한 것 같아요. 팔레트 아래에서 다시 시작해주세요.")
+
+        if pallete_index in boxes:
+            x1_min, y1_min, x1_max, y1_max = boxes.get(pallete_index)
+        else:
+            message = json.dumps({"text": "hide_pallete", "data": 0})
+            await websocket.send_text(message)
+            return print("해당하는 섀도우 색상을 손으로 가리신 것 같아요. 팔레트 아래에서 다시 시작해주세요.")
+
         x2, y2 = finger
 
-        if x2 is None or y2 is None or boxes is None:
-            message = json.dumps({"text": "", "data": 9})
-            await websocket.send_text(message)
-            return print("햅틱 가이던스 도중 인식하지 못한 좌표값이 있어요")
-
-        x1_min, y1_min, x1_max, y1_max = boxes.get(pallete_index)
-
-        if x2 > x1_max: # 오른쪽
-            message = json.dumps({"text": "", "data": 4})
+        if x2 > x1_max: # 왼쪽
+            message = json.dumps({"text": "", "data": 3})
             print(message)
             await websocket.send_text(message)
-        elif x2 < x1_min: # 왼쪽
-            message = json.dumps({"text": "", "data": 3})
+        elif x2 < x1_min: # 오른쪽
+            message = json.dumps({"text": "", "data": 4})
             print(message)
             await websocket.send_text(message)
 
         await asyncio.sleep(3)
 
-        if y2 > y1_max: # 아래
+        if y2 > y1_max: # 위
             message = json.dumps({"text": "", "data": 2})
             print(message)
             await websocket.send_text(message)
-        elif y2 < y1_min: # 위
+        elif y2 < y1_min: # 아래
             message = json.dumps({"text": "", "data": 1})
             print(message)
             await websocket.send_text(message)

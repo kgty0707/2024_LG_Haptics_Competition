@@ -23,9 +23,30 @@
         const recordingElement = document.getElementById('recording');
 
         if (positionText) {
-            // 기존 recording 요소를 숨기고 텍스트 요소를 추가
+            if (positionText == "finger_out") {
+                const serverResponse = document.getElementById('server-response');
+                if (serverResponse) {
+                    serverResponse.innerText = "손가락이 사라졌어요. 한 손 가락을 핀 상태로 다시 시작해주세요🥺";
+                }
+            }
+
+            else if (positionText == "pallte_out") {
+                const serverResponse = document.getElementById('server-response');
+                if (serverResponse) {
+                    serverResponse.innerText = "손으로 가려져서 팔레트를 인식하지 못한 것 같아요. 팔레트 아래에서 다시 시작해주세요🥺";
+                }
+            }
+
+            else if (positionText == "hide_pallete") {
+                const serverResponse = document.getElementById('server-response');
+                if (serverResponse) {
+                    serverResponse.innerText = "해당하는 섀도우 색상을 손으로 가리신 것 같아요. 팔레트 아래에서 다시 시작해주세요🥺";
+                }
+            }
+
             recordingElement.style.display = "none";
             let textElement = document.getElementById('textRecording');
+
             if (!textElement) {
                 textElement = document.createElement('p');
                 textElement.id = 'textRecording';
@@ -40,17 +61,11 @@
                 });
             }
         }
-        if (positionData == "0" || "9") {
+        if (positionData == "0") {
             recordingElement.style.display = "block";
             const textElement = document.getElementById('textRecording');
             if (textElement) {
                 textElement.remove();
-            }
-            if (positionData == "9") {
-                const serverResponse = document.getElementById('server-response');
-                if (serverResponse) {
-                    serverResponse.innerText = "인식하지 못한 좌표값이 있어요🥺";
-                }
             }
         }
         writePositionData(positionData);

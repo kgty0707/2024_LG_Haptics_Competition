@@ -48,11 +48,10 @@ class HandModelTool(BaseTool):
         print("image_path 확인", image)
         _, finger, bboxes = detection_cosmatic(f"./uploads/{image}")
         
-        x, y = finger
-
-        if x is None or y is None or bboxes is None:
+        if finger is None or bboxes is None:
             return "무슨 색을 가르키고 있는 지 못찾았어요😭"
         else:
+            x, y = finger
             bbox_key = self.find_key_with_coordinates(bboxes, x, y)
             if bbox_key is None:  
                 return "무슨 색을 가르키고 있는 지 못찾았어요😭"
@@ -125,11 +124,13 @@ def generate_response(model_index, query):
         match2 = re.search(pattern2, text)
         match3 = re.search(pattern3, text)
         match4 = re.search(pattern4, text)
-        if tool_answer != "Invalid or incomplete response" and tool_answer != "None is not a valid tool, try one of [Hand Model Tool, Add Heart Tool, Haptic Guidance Tool]." and tool_answer != "Invalid Format: Missing 'Action:' after 'Thought:":
+        if tool_answer != "Invalid or incomplete response" and tool_answer != "None is not a valid tool, try one of [Hand Model Tool, Add Heart Tool, Haptic Guidance Tool]." and tool_answer != "Invalid Format: Missing 'Action:' after 'Thought:" and tool_answer != "Invalid Format: Missing 'Action Input:' after 'Action:'":
             result = tool_answer
         elif tool_answer == "None is not a valid tool, try one of [Hand Model Tool, Add Heart Tool, Haptic Guidance Tool].":
             result = "AI Agent에서 추출할 수 있는 답변이 없어요."
         elif tool_answer == "Invalid Format: Missing 'Action:' after 'Thought:":
+            result = "AI Agent에서 추출할 수 있는 답변이 없어요."
+        elif tool_answer == "Invalid Format: Missing 'Action Input:' after 'Action:'":
             result = "AI Agent에서 추출할 수 있는 답변이 없어요."
         elif tool_answer == "Invalid or incomplete response":
             result = "AI Agent에서 추출할 수 있는 답변이 없어요."
@@ -150,7 +151,8 @@ def generate_response(model_index, query):
 
 def generate_template(info):
     template = f'''You are an assistant who helps explain cosmetics for the blind. When you ask questions about colors or cosmetics, kindly explain them in Korean. Your name is "Ms. 메이크".
-
+    Note that '3_12' refers to the second color in the first row, '3_22' refers to the second color in the second row, and '3_31' refers to the first color in the third row.
+    Note: Do not mention color codes such as '3_12', '3_22', or '3_31' when providing explanations.\n\n
     You have access to the following tools, but you do not have to use them if not necessary:
     {{tools}}
 

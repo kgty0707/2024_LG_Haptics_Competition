@@ -36,13 +36,14 @@ def detection_cosmatic(image):
         class_name = class_names[class_id]
 
         if class_id == 12 or class_id == 13 :
-            pallete = class_name
+            if pallete is None:
+                pallete = class_name
             
         elif class_id == 11 : # 손가락 좌표
             center_x = (x1 + x2) // 2
-            center_y = (y1 + y2) // 2
+            center_y = y2
             finger = [center_x, center_y]
         else:
             shadow_boxes[class_name] = scaled_bbox
-    
+    print(f"모델 출력 팔레트: {pallete}, 손가락: {finger}, 바운딩 박스: {shadow_boxes}")
     return pallete, finger, shadow_boxes
