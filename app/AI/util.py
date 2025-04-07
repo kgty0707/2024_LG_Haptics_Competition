@@ -56,27 +56,28 @@ def draw_lipstick_data(draw, lips_data, point_radius=3):
 
 
 def draw_lips_data(draw, lips_data, point_radius=1):
-
-    # 외곽선 점들 (분홍)
-    for i, pt in enumerate(lips_data["outer_lips_points"]):
-        x, y = int(pt["x"]), int(pt["y"])
-        draw.ellipse((x - point_radius, y - point_radius, x + point_radius, y + point_radius), fill="pink")
-
-    # 내곽선 점들 (주황)
-    for i, pt in enumerate(lips_data["inner_lips_points"]):
-        x, y = int(pt["x"]), int(pt["y"])
-        draw.ellipse((x - point_radius, y - point_radius, x + point_radius, y + point_radius), fill="orange")
-
-    # 주요 포인트 (빨강)
     for name, pt in lips_data["key_points"].items():
         x, y = int(pt["x"]), int(pt["y"])
         draw.ellipse((x - point_radius, y - point_radius, x + point_radius, y + point_radius), fill="red")
+    
+    center = lips_data["key_points"]["right_corner"]
+    lip_x, lip_y = int(center["x"]), int(center["y"])
 
+    box_x1 = lip_x - 10
+    box_y1 = lip_y - 10
+    box_x2 = lip_x + 10
+    box_y2 = lip_y + 10
 
-def draw_hand_data(draw, hand_data_list, point_radius=1):    
-    for hand_idx, hand_data in enumerate(hand_data_list):
-        points = hand_data["points"]
+    draw.rectangle([(box_x1, box_y1), (box_x2, box_y2)], outline="green", width=2)
 
-        for pt in points:
-            x, y = int(pt["x"]), int(pt["y"])
-            draw.ellipse((x - point_radius, y - point_radius, x + point_radius, y + point_radius), fill="blue")
+def draw_hand_data(draw, hand_data, point_radius=3):
+    x = int(hand_data["index_tip_location"]["x"])
+    y = int(hand_data["index_tip_location"]["y"])
+
+    draw.ellipse(
+        (x - point_radius, y - point_radius, x + point_radius, y + point_radius),
+        fill="blue"
+    )
+
+    draw.text((x + 5, y), "Index Tip", fill="blue")
+

@@ -133,7 +133,8 @@ def detect_lipstick(face_image_path):
             return top_middle_x, top_middle_y
         else:
             print("No predictions found.")
-    return []
+
+    return None, None
 
 
 def detect_lips(face_image):
@@ -162,17 +163,17 @@ def detect_lips(face_image):
             if lips_data:
                 draw_lips_data(draw, lips_data)
                 save_result_image(face_image_copy, prefix="lips_data")
-                if lips_data["outer_lips_points"][0]["x"] and lips_data["outer_lips_points"][0]["y"]:
-                    return lips_data["outer_lips_points"][0]["x"], lips_data["outer_lips_points"][0]["y"]
+                if lips_data["key_points"]["right_corner"]["x"] and lips_data["key_points"]["right_corner"]["y"]:
+                    return lips_data["key_points"]["right_corner"]["x"], lips_data["key_points"]["right_corner"]["y"]
         else:
             print("얼굴이 감지되지 않았습니다.")
-            return []
+            return None, None
 
     
     # print("61 입술 데이터:", lips_data["outer_lips_points"][0]["x"])
     # print("61 입술 데이터:", lips_data["outer_lips_points"][0]["y"])
 
-    return []
+    return None, None
 
 
 def detect_hands(image_path):
@@ -180,7 +181,7 @@ def detect_hands(image_path):
     width, height = image.size
     image_np = np.array(image)
 
-    hands_data = []
+    hand_data = None, None
 
     with mp_hands.Hands(
         static_image_mode=True,
@@ -193,16 +194,15 @@ def detect_hands(image_path):
             for idx, hand_landmarks in enumerate(hand_results.multi_hand_landmarks):
                 handedness = hand_results.multi_handedness[idx]
                 hand_data = extract_hand_data(hand_landmarks, handedness, width, height)
-                hands_data.append(hand_data)
+                image_copy = image.copy()
+                draw = ImageDraw.Draw(image_copy)
+                draw_hand_data(draw, hand_data)
+                save_result_image(image_copy, prefix="hands_data")
+                return hand_data["index_tip_location"]["x"], hand_data["index_tip_location"]["y"]
+
         else:
             print("손이 감지되지 않았습니다.")
 
-    image_copy = image.copy()
-    draw = ImageDraw.Draw(image_copy)
-    draw_hand_data(draw, hands_data)
+    return hand_data
 
-    save_result_image(image_copy, prefix="hands_data")
-
-    return hands_data
-
-# print(detect_lips("./test/images2.jpg"))
+# print(detect_lipstick("./test/images7.jpg"))

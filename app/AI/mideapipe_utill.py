@@ -67,14 +67,6 @@ def extract_lips_data(landmarks, image_width, image_height):
     
     # 데이터 구성
     lips_data = {
-        "outer_lips_points": [
-            {"index": idx, **landmark_to_pixel(landmarks.landmark[idx])}
-            for idx in LIPS_INDEXES["outer_lips"]
-        ],
-        "inner_lips_points": [
-            {"index": idx, **landmark_to_pixel(landmarks.landmark[idx])}
-            for idx in LIPS_INDEXES["inner_lips"]
-        ],
         "key_points": {
             "upper_lip_top": {"index": LIPS_INDEXES["upper_lip_top"], **upper_lip_top},
             "upper_lip_bottom": {"index": LIPS_INDEXES["upper_lip_bottom"], **upper_lip_bottom},
@@ -84,12 +76,12 @@ def extract_lips_data(landmarks, image_width, image_height):
             "right_corner": {"index": LIPS_INDEXES["right_corner"], **right_corner}
         },
     }
-    # print(lips_data)
+    
     return lips_data
 
 
 def extract_hand_data(landmarks, handedness, image_width, image_height):
-    # 랜드마크를 픽셀 좌표로 변환하는 함수
+    
     def landmark_to_pixel(landmark):
         return {
             "x": landmark.x * image_width,
@@ -97,19 +89,12 @@ def extract_hand_data(landmarks, handedness, image_width, image_height):
             # "z": landmark.z * image_width  # z값도 픽셀 단위로 변환
         }
     # 손의 좌/우 구분
-    hand_type = handedness.classification[0].label  # "Left" 또는 "Right"
-    # 손 랜드마크 포인트 추출
-    hand_points = []
-    for idx, landmark in enumerate(landmarks.landmark):
-        hand_points.append({
-            "index": idx,
-            "name": HAND_LANDMARK_NAMES.get(idx, f"POINT_{idx}"),
-            **landmark_to_pixel(landmark)
-        })
-    # 손 데이터 구성
+    hand_type = handedness.classification[0].label
+    index_tip_location = landmark_to_pixel(landmarks.landmark[8])
+
     hand_data = {
         "hand_type": hand_type,
-        "points": hand_points
+        "index_tip_location": index_tip_location
     }
-    # print(hand_data)
+
     return hand_data

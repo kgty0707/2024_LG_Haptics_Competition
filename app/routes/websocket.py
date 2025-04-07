@@ -10,6 +10,7 @@ from openai import OpenAI
 import time
 import asyncio
 import json
+import csv
 import os
 
 load_dotenv()
@@ -60,9 +61,25 @@ async def monitor_conditions(websocket: WebSocket):
     while True:
         await asyncio.sleep(5)
         if check_condition() == 1:
-            await haptic_guidance(websocket)
+            spend_time, retry_count, response_result = await haptic_guidance(websocket)
+            save_result_to_csv(spend_time, retry_count, response_result, prefix="haptic_")
+            
         elif check_condition() == 2:
-            await face_haptic_guidance(websocket)
+            spend_time, retry_count, response_result = await face_haptic_guidance(websocket)
+            save_result_to_csv(spend_time, retry_count, response_result, prefix="face_")
+
+
+def save_result_to_csv(spend_time, retry_count, response_result, prefix=""):
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{prefix}_log_{timestamp}.csv"
+    log_dir = "./logs"
+    os.makedirs(log_dir, exist_ok=True)
+    csv_path = os.path.join(log_dir, filename)
+
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["timestamp", "spend_time", "retry_count", "response_result"])
+        writer.writerow([timestamp, spend_time, retry_count, response_result])
 
 
 def check_condition():
@@ -99,20 +116,20 @@ async def get_valid_detection(websocket, pallete_index, max_retries=5):
         image_path = await receive_and_save_image(websocket)
         if not image_path:
             print("이미지 수신 실패")
-            return None, None
+            # return None, None, attempt
         _, finger, boxes = detection_cosmatic(image_path)
         if not finger or not boxes:
             print("손가락 & 박스 인식 실패")
-            return None, None
+            # return None, None, attempt
         
         print(f"Attempt {attempt + 1}: finger: {finger}, boxes: {boxes}")
         if finger and boxes and pallete_index in boxes:
-            return finger, boxes.get(pallete_index)
+            return finger, boxes.get(pallete_index), attempt
 
         print(f"[{attempt + 1}/{max_retries}] 인식 실패 - finger: {finger}, boxes: {boxes}")
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.5)
     
-    return None, None
+    return None, None, 5
 
 
 async def get_valid_face_detection(websocket, max_retries=5):
@@ -129,13 +146,13 @@ async def get_valid_face_detection(websocket, max_retries=5):
 
         if x and y and lip_x and lip_y:
             print(f"재시도 성공: Lipstick({x}, {y}) / Lip({lip_x}, {lip_y})")
-            return x, y, lip_x, lip_y
+            return x, y, lip_x, lip_y, attempt
         else:
             print(f"[{attempt + 1}/{max_retries}] 재시도 실패 - lipstick or lips 없음")
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.5)
 
     print("❌ 최대 재시도 초과")
-    return None, None, None, None
+    return None, None, None, None, 5
 
 
 async def send_guidance(websocket, direction, audio_text):
@@ -146,6 +163,9 @@ async def send_guidance(websocket, direction, audio_text):
 
 async def haptic_guidance(websocket: WebSocket):
     global input_query
+
+    retry_count = 0
+
     query, info = input_query
     pallete_index = select_cosmatic_num(query, info)
 
@@ -163,7 +183,7 @@ async def haptic_guidance(websocket: WebSocket):
     if not finger or not boxes or pallete_index not in boxes:
         # 재시도 로직
         print("초기 인식 실패, 재시도 중...")
-        finger, bbox = await get_valid_detection(websocket, pallete_index)
+        finger, bbox, retry_count = await get_valid_detection(websocket, pallete_index)
         if not finger or not bbox:
             await websocket.send_text(json.dumps({
                 "text": "인식 실패", "data": 0
@@ -179,7 +199,7 @@ async def haptic_guidance(websocket: WebSocket):
     print(f"Finger Position: {finger}")
 
     start_time = time.time()
-    timeout = 18
+    timeout = 20
 
     await websocket.send_text(json.dumps({
         "text": "햅틱 가이던스가 시작돼요!", "data": ""
@@ -188,14 +208,14 @@ async def haptic_guidance(websocket: WebSocket):
     while not (x1_min <= x2 <= x1_max and y1_min <= y2 <= y1_max):
         if time.time() - start_time > timeout:
             await websocket.send_text(json.dumps({"text": "", "data": 0}))
-            return print("시간 초과")
+            return time.time() - start_time, retry_count, "timeout"
 
         await websocket.send_text(json.dumps({"text": "False", "data": ""}))
         image_path = await receive_and_save_image(websocket)
         _, finger, boxes = detection_cosmatic(image_path)
 
         if not finger or not boxes or pallete_index not in boxes:
-            finger, bbox = await get_valid_detection(websocket, pallete_index)
+            finger, bbox, retry_count = await get_valid_detection(websocket, pallete_index)
             if not finger or not bbox:
                 await websocket.send_text(json.dumps({
                     "text": "인식 실패", "data": 0
@@ -222,10 +242,12 @@ async def haptic_guidance(websocket: WebSocket):
         await asyncio.sleep(0.5)
 
     await websocket.send_text(json.dumps({"text": "", "data": 0}))
-    print("목표 지점 도달")
+    return time.time() - start_time, retry_count, "complete"
 
 
 async def face_haptic_guidance(websocket: WebSocket):
+    retry_count = 0
+
     await websocket.send_text(json.dumps({
         "text": "True", "data": "", "audio": tts("얼굴 햅틱 가이던스를 시작할게요")
     }))
@@ -241,7 +263,7 @@ async def face_haptic_guidance(websocket: WebSocket):
 
     if not all([x, y, lip_x, lip_y]):
             print("초기 인식 실패, 재시도 중...")
-            x, y, lip_x, lip_y = await get_valid_face_detection(websocket)
+            x, y, lip_x, lip_y, retry_count = await get_valid_face_detection(websocket)
             if not all([x, y, lip_x, lip_y]):
                 await websocket.send_text(json.dumps({
                     "text": "인식 실패", "data": 0
@@ -258,7 +280,7 @@ async def face_haptic_guidance(websocket: WebSocket):
     while not (lip_x - 10 <= x <= lip_x + 10 and lip_y - 10 <= y <= lip_y + 10):
         if time.time() - start_time > timeout:
             await websocket.send_text(json.dumps({"text": "", "data": 0}))
-            return print("시간 초과")
+            return time.time() - start_time, retry_count, "timeout"
 
         await websocket.send_text(json.dumps({"text": "False", "data": ""}))
         image_path = await receive_and_save_image(websocket)
@@ -268,7 +290,7 @@ async def face_haptic_guidance(websocket: WebSocket):
 
         if not all([x, y, lip_x, lip_y]):
             print("초기 인식 실패, 재시도 중...")
-            x, y, lip_x, lip_y = await get_valid_face_detection(websocket)
+            x, y, lip_x, lip_y, retry_count = await get_valid_face_detection(websocket)
             if not all([x, y, lip_x, lip_y]):
                 await websocket.send_text(json.dumps({
                     "text": "인식 실패", "data": 0
@@ -290,7 +312,8 @@ async def face_haptic_guidance(websocket: WebSocket):
         await asyncio.sleep(0.5)
 
     await websocket.send_text(json.dumps({"text": "", "data": 0}))
-    print("목표 지점 도달")
+    print("햅틱 가이던스 완료")
+    return time.time() - start_time, retry_count, "complete"
 
 
 client = OpenAI(api_key=api_key)
