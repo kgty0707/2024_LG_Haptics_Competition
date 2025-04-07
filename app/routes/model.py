@@ -1,6 +1,5 @@
 import os
 import re
-from langchain.pydantic_v1 import Field
 from langchain.tools import BaseTool
 from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
@@ -9,8 +8,7 @@ from app.routes.websocket import update_condition_met, update_input_query
 from app.routes.search import search_by
 from app.AI.model import detection_cosmatic
 from dotenv import load_dotenv
-from openai import OpenAI
-from datetime import datetime
+
 
 load_dotenv()
 
@@ -22,7 +20,7 @@ if not api_key:
 llm = ChatOpenAI(
     openai_api_key=api_key,
     temperature=0,
-    model_name='gpt-4o'
+    model_name='gpt-4o' # 모델 버전 업데이트 "gpt-4o" -> "gpt-4o-mini"
 )
 
 # TODO: HandModelTool(BaseTool), HapticGuidanceTool(BaseTool)의 모델 추론 결과 반환하는 부분 통일
@@ -70,8 +68,23 @@ class HapticGuidanceTool(BaseTool):
     description = "This is a Haptic Guidance Tool. It is useful for helping the user bring their hand closer to the desired color. It is used to indicate which color my hand wants to use."
 
     def _run(self, text: str) -> str:
-        update_condition_met(True)
+        update_condition_met(1)
         return "햅틱 가이던스가 진행중이에요!🔊"
+
+    def _arun(self, text: str):
+        raise NotImplementedError("This tool does not support async")
+    
+
+class FaceHapticGuidanceTool(BaseTool):
+    '''
+    FaceHapticGuidanceTool을 실행
+    lipstick, lip에 대한 햅틱 가이던스, 사용자가 원하는 위치에 원하는 립스틱을 가져다 대는 것
+    '''
+    name = "Face Haptic Guidance Tool"
+    description = "This is a haptic guidance tool for lipstick application. It helps the user guide their hand to the desired location on the lips and apply the selected lipstick color accurately."    
+    def _run(self, text: str) -> str:
+        update_condition_met(2)
+        return "얼굴 햅틱 가이던스가 진행중이에요!🔊"
 
     def _arun(self, text: str):
         raise NotImplementedError("This tool does not support async")
@@ -88,13 +101,19 @@ class AddHeartTool(BaseTool):
         raise NotImplementedError("This tool does not support async")
 
 
-def generate_response(model_index, query):
-    info = search_by(model_index)
+def generate_response(image_path, query):
+    model_index, _, _ = detection_cosmatic(image_path)
 
+    if model_index is None:
+        print("⚠️ 팔레트 model_index가 감지되지 않았습니다.")
+        info = ""
+    else:
+        info = search_by(model_index)
+    
     prompt_template = generate_template(info)
     print("Prompt Template:", prompt_template)
 
-    tools = [HandModelTool(), AddHeartTool(), HapticGuidanceTool()]
+    tools = [HandModelTool(), AddHeartTool(), HapticGuidanceTool(), FaceHapticGuidanceTool()]
 
     agent = create_react_agent(llm, tools, prompt_template)
 
@@ -169,32 +188,6 @@ def generate_template(info):
     prompt = PromptTemplate(input_variables=['agent_scratchpad', 'input', 'tool_names', 'tools'], template=template)
     return prompt
 
-
-client = OpenAI(api_key=api_key)
-
-def stt(audio_path):
-    audio_file= open(audio_path, "rb")
-    transcription = client.audio.transcriptions.create(
-    model="whisper-1", 
-    file=audio_file
-    )
-    return transcription.text
-
-
-def tts(text_path):
-    response = client.audio.speech.create(
-        model="tts-1",
-        voice="fable",
-        input=text_path,
-        # speed=1.2
-    )
-
-    now = datetime.now()
-    file_name = now.strftime("text_%Y%m%d_%H%M%S.wav")
-    file_path = f"./uploads/{file_name}"
-    
-    response.stream_to_file(file_path)
-    return file_path
 
 def find_latest_image(directory):
     png_files = [f for f in os.listdir(directory) if f.endswith('.png')]

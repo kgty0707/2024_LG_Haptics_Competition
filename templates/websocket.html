@@ -1,12 +1,26 @@
+<!-- TODO: JSON 데이터 중 음성 데이터 Parsing 후 "audio-player"에 넣기 -->
 <script type="module">
     import firebaseConfig from '/config/config_mod.js';
 
     firebase.initializeApp(firebaseConfig);
 
     var database = firebase.database();
+    const voice_flag = true;
+    const haptic_flag = true;
 
-    function writePositionData(value) {
-        firebase.database().ref('position/').set(value);
+    function writePositionData(value, Flag = false) {
+        if (Flag) {
+            firebase.database().ref('position/').set(value);
+        } else {
+            return "position/" + value;
+        }
+    }
+
+    // parsing 된 음성 데이터를 "audio-player"에 넣기
+    function playAudio(audioData) {
+        const audioPlayer = document.getElementById('audio-player');
+        audioPlayer.src = audioData;
+        audioPlayer.play();
     }
 
     const ws = new WebSocket("ws://localhost:8000/ws");
@@ -19,7 +33,6 @@
         const position = JSON.parse(event.data);
         const positionText = position.text;
         const positionData = position.data;
-
         const recordingElement = document.getElementById('recording');
 
         if (positionText) {
@@ -68,7 +81,13 @@
                 textElement.remove();
             }
         }
-        writePositionData(positionData);
+
+        if (haptic_flag) {
+            writePositionData(positionData);
+        }
+        if (voice_flag) {
+            playAudio(position.audio);
+        }
     };
 
     ws.onclose = function () {

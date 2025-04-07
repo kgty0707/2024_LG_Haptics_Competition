@@ -130,7 +130,7 @@ function displayServerResponse(responseText) {
 function playAudio(audioUrl) {
     const audioPlayer = document.getElementById('audio-player');
     audioPlayer.src = audioUrl;
-    audioPlayer.style.display = 'block';
+    // audioPlayer.style.display = 'block';
     audioPlayer.play();
 }
 
