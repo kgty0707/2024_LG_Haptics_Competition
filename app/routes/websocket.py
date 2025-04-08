@@ -209,7 +209,7 @@ async def haptic_guidance(websocket: WebSocket):
 
     while not (x1_min <= x2 <= x1_max and y1_min <= y2 <= y1_max):
         if time.time() - start_time > timeout:
-            await websocket.send_text(json.dumps({"text": "", "data": 0}))
+            await websocket.send_text(json.dumps({"text": "", "data": 6}))
             return time.time() - start_time, retry_count, "timeout"
 
         await websocket.send_text(json.dumps({"text": "False", "data": ""}))
@@ -244,7 +244,7 @@ async def haptic_guidance(websocket: WebSocket):
 
         await asyncio.sleep(1)
 
-    await websocket.send_text(json.dumps({"text": "", "data": 0}))
+    await websocket.send_text(json.dumps({"text": "", "data": 5}))
     return time.time() - start_time, retry_count, "complete"
 
 
@@ -285,7 +285,7 @@ async def face_haptic_guidance(websocket: WebSocket):
 
     while not (lip_x - 10 <= x <= lip_x + 10 and lip_y - 10 <= y <= lip_y + 10):
         if time.time() - start_time > timeout:
-            await websocket.send_text(json.dumps({"text": "", "data": 0}))
+            await websocket.send_text(json.dumps({"text": "", "data": 6}))
             return time.time() - start_time, retry_count, "timeout"
 
         await websocket.send_text(json.dumps({"text": "False", "data": ""}))
@@ -317,7 +317,7 @@ async def face_haptic_guidance(websocket: WebSocket):
 
         await asyncio.sleep(1)
 
-    await websocket.send_text(json.dumps({"text": "", "data": 0}))
+    await websocket.send_text(json.dumps({"text": "", "data": 5}))
     print("햅틱 가이던스 완료")
     return time.time() - start_time, retry_count, "complete"
 

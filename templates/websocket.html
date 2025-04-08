@@ -8,12 +8,8 @@
     const voice_flag = true;
     const haptic_flag = true;
 
-    function writePositionData(value, Flag = false) {
-        if (Flag) {
-            firebase.database().ref('position/').set(value);
-        } else {
-            return "position/" + value;
-        }
+    function writePositionData(value) {
+        firebase.database().ref('position/').set(value);
     }
 
     // parsing 된 음성 데이터를 "audio-player"에 넣기
