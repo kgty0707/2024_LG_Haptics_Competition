@@ -15,8 +15,23 @@
     // parsing 된 음성 데이터를 "audio-player"에 넣기
     function playAudio(audioData) {
         const audioPlayer = document.getElementById('audio-player');
+
+        // 이전 재생이 있으면 중단
+        if (!audioPlayer.paused) {
+            audioPlayer.pause();
+        }
+
+        // 재생 시작 위치 초기화
+        audioPlayer.currentTime = 0;
+
+        // 새로운 소스로 설정 후 load
         audioPlayer.src = audioData;
-        audioPlayer.play();
+        audioPlayer.load();
+
+        // 안전하게 재생
+        audioPlayer.play().catch((error) => {
+            console.warn("🎧 오디오 재생 실패:", error);
+        });
     }
 
     const ws = new WebSocket("ws://localhost:8000/ws");
@@ -70,7 +85,7 @@
                 });
             }
         }
-        if (positionData == "0") {
+        if ([0, 5, 6].includes(positionData)) {
             recordingElement.style.display = "block";
             const textElement = document.getElementById('textRecording');
             if (textElement) {
@@ -81,8 +96,11 @@
         if (haptic_flag) {
             writePositionData(positionData);
         }
-        if (voice_flag) {
+        if (voice_flag && position.audio) {
+            console.log("🔊 음성 재생 시작:", position.audio);
             playAudio(position.audio);
+        } else {
+            console.log("⏸️ 음성 없음 또는 비활성화 상태", position);
         }
     };
 

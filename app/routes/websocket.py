@@ -30,6 +30,13 @@ connected_clients = []
 condition_met = 0
 input_query = []
 
+haptic_flag = True
+
+if haptic_flag:
+    wait_time = 1
+else:
+    wait_time = 0.1
+
 
 def update_condition_met(value: bool):
     global condition_met
@@ -115,10 +122,12 @@ async def get_valid_detection(websocket, pallete_index, max_retries=5):
         await websocket.send_text(json.dumps({"text": "False", "data": ""}))
         image_path = await receive_and_save_image(websocket)
         if not image_path:
+            await send_guidance(websocket, audio_text="이미지 전송이 안되고 있어요.")
             print("이미지 수신 실패")
             # return None, None, attempt
         _, finger, boxes = detection_cosmatic(image_path)
         if not finger or not boxes:
+            await send_guidance(websocket, audio_text="손가락과 화장품이 안보여요.")
             print("손가락 & 박스 인식 실패")
             # return None, None, attempt
         
@@ -127,7 +136,7 @@ async def get_valid_detection(websocket, pallete_index, max_retries=5):
             return finger, boxes.get(pallete_index), attempt
 
         print(f"[{attempt + 1}/{max_retries}] 인식 실패 - finger: {finger}, boxes: {boxes}")
-        await asyncio.sleep(1)
+        await asyncio.sleep(wait_time)
     
     return None, None, 5
 
@@ -138,7 +147,7 @@ async def get_valid_face_detection(websocket, max_retries=5):
     """
     print("[get_valid_face_detection] 인식 재시도 중...")
     for attempt in range(max_retries):
-        await websocket.send_text(json.dumps({"text": "False", "data": ""}))
+        # await websocket.send_text(json.dumps({"text": "False", "data": ""}))
         image_path = await receive_and_save_image(websocket)
 
         x, y = detect_lipstick(image_path)
@@ -149,13 +158,13 @@ async def get_valid_face_detection(websocket, max_retries=5):
             return x, y, lip_x, lip_y, attempt
         else:
             print(f"[{attempt + 1}/{max_retries}] 재시도 실패 - lipstick or lips 없음")
-            await asyncio.sleep(1)
+            await asyncio.sleep(wait_time)
 
     print("❌ 최대 재시도 초과")
     return None, None, None, None, 5
 
 
-async def send_guidance(websocket, direction, audio_text):
+async def send_guidance(websocket, direction="", audio_text=""):
     message = json.dumps({"text": "", "data": direction, "audio": tts(audio_text)})
     print(message)
     await websocket.send_text(message)
@@ -168,6 +177,9 @@ async def haptic_guidance(websocket: WebSocket):
 
     query, info = input_query
     pallete_index = select_cosmatic_num(query, info)
+
+    if len(pallete_index) > 10:
+        return time.time() - start_time, 0, "Non pallete number, Error"
 
     await websocket.send_text(json.dumps({
         "text": "True", "data": "", "audio": tts("햅틱 가이던스를 시작할게요")
@@ -187,10 +199,8 @@ async def haptic_guidance(websocket: WebSocket):
         print("초기 인식 실패, 재시도 중...")
         finger, bbox, retry_count = await get_valid_detection(websocket, pallete_index)
         if not finger or not bbox:
-            await websocket.send_text(json.dumps({
-                "text": "인식 실패", "data": 0
-            }))
-            return print("손가락 또는 팔레트를 인식하지 못했습니다.")
+            await send_guidance(websocket, direction=6, audio_text="손가락 또는 섀도우를 찾지 못했어요")
+            return None, None, None
     else:
         bbox = boxes.get(pallete_index)
 
@@ -201,7 +211,7 @@ async def haptic_guidance(websocket: WebSocket):
     print(f"Finger Position: {finger}")
 
     start_time = time.time()
-    timeout = 20
+    timeout = 25
 
     await websocket.send_text(json.dumps({
         "text": "햅틱 가이던스가 시작돼요!", "data": ""
@@ -209,7 +219,7 @@ async def haptic_guidance(websocket: WebSocket):
 
     while not (x1_min <= x2 <= x1_max and y1_min <= y2 <= y1_max):
         if time.time() - start_time > timeout:
-            await websocket.send_text(json.dumps({"text": "", "data": 6}))
+            await websocket.send_text(json.dumps({"text": "", "data": 6, "audio": tts("시간초과 되었어요")}))
             return time.time() - start_time, retry_count, "timeout"
 
         await websocket.send_text(json.dumps({"text": "False", "data": ""}))
@@ -219,11 +229,8 @@ async def haptic_guidance(websocket: WebSocket):
         if not finger or not boxes or pallete_index not in boxes:
             finger, bbox, retry_count = await get_valid_detection(websocket, pallete_index)
             if not finger or not bbox:
-                await websocket.send_text(json.dumps({
-                    "text": "인식 실패", "data": 0
-                }))
-                print("손가락 또는 팔레트를 인식하지 못했습니다.")
-                return None, None, None
+                await send_guidance(websocket, direction=6, audio_text="손가락 또는 섀도우를 찾지 못했어요")
+            return None, None, None
         else:
             bbox = boxes.get(pallete_index)
 
@@ -231,20 +238,20 @@ async def haptic_guidance(websocket: WebSocket):
         x2, y2 = finger
 
         if x2 > x1_max:
-            await send_guidance(websocket, 3, "왼쪽이에요")
+            await send_guidance(websocket, 3, "왼쪽이에요.")
         elif x2 < x1_min:
-            await send_guidance(websocket, 4, "오른쪽이에요")
+            await send_guidance(websocket, 4, "오른쪽이에요.")
 
-        await asyncio.sleep(1)
+        await asyncio.sleep(wait_time)
 
         if y2 > y1_max:
-            await send_guidance(websocket, 2, "위쪽이에요")
+            await send_guidance(websocket, 2, "위쪽이에요.")
         elif y2 < y1_min:
-            await send_guidance(websocket, 1, "아래쪽이에요")
+            await send_guidance(websocket, 1, "아래쪽이에요.")
 
-        await asyncio.sleep(1)
+        await asyncio.sleep(wait_time)
 
-    await websocket.send_text(json.dumps({"text": "", "data": 5}))
+    await websocket.send_text(json.dumps({"text": "", "data": 5, "audio": tts("햅틱 가이던스 완료")}))
     return time.time() - start_time, retry_count, "complete"
 
 
@@ -252,7 +259,7 @@ async def face_haptic_guidance(websocket: WebSocket):
     retry_count = 0
 
     await websocket.send_text(json.dumps({
-        "text": "True", "data": "", "audio": tts("얼굴 햅틱 가이던스를 시작할게요")
+        "text": "True", "data": "", "audio": tts("얼굴 햅틱 가이던스를 시작할게요.")
     }))
 
     await asyncio.sleep(3)
@@ -270,14 +277,11 @@ async def face_haptic_guidance(websocket: WebSocket):
             print("초기 인식 실패, 재시도 중...")
             x, y, lip_x, lip_y, retry_count = await get_valid_face_detection(websocket)
             if not all([x, y, lip_x, lip_y]):
-                await websocket.send_text(json.dumps({
-                    "text": "인식 실패", "data": 0
-                }))
-                print("lipstick 또는 lips를 인식하지 못했습니다.")
+                send_guidance(websocket, direction=6, audio_text="lipstick 또는 lips를 인식하지 못했습니다.")
                 return None, None, None
 
     start_time = time.time()
-    timeout = 18
+    timeout = 25
 
     await websocket.send_text(json.dumps({
         "text": "얼굴 햅틱 가이던스가 시작돼요!", "data": ""
@@ -285,7 +289,7 @@ async def face_haptic_guidance(websocket: WebSocket):
 
     while not (lip_x - 10 <= x <= lip_x + 10 and lip_y - 10 <= y <= lip_y + 10):
         if time.time() - start_time > timeout:
-            await websocket.send_text(json.dumps({"text": "", "data": 6}))
+            await websocket.send_text(json.dumps({"text": "", "data": 6, "audio": tts("시간초과 되었어요")}))
             return time.time() - start_time, retry_count, "timeout"
 
         await websocket.send_text(json.dumps({"text": "False", "data": ""}))
@@ -298,27 +302,25 @@ async def face_haptic_guidance(websocket: WebSocket):
             print("초기 인식 실패, 재시도 중...")
             x, y, lip_x, lip_y, retry_count = await get_valid_face_detection(websocket)
             if not all([x, y, lip_x, lip_y]):
-                await websocket.send_text(json.dumps({
-                    "text": "인식 실패", "data": 0
-                }))
-                return print("lipstick 또는 lips를 인식하지 못했습니다.")
+                send_guidance(websocket, direction=6, audio_text="lipstick 또는 lips를 인식하지 못했습니다.")
+                return None, None, None
                 
         if x > lip_x + 10:
-            await send_guidance(websocket, 3, "왼쪽이에요")
+            await send_guidance(websocket, 3, "왼쪽이에요.")
         elif x < lip_x - 10:
-            await send_guidance(websocket, 4, "오른쪽이에요")
+            await send_guidance(websocket, 4, "오른쪽이에요.")
 
-        await asyncio.sleep(1)
+        await asyncio.sleep(wait_time)
 
         if y > lip_y + 10:
-            await send_guidance(websocket, 2, "위쪽이에요")
+            await send_guidance(websocket, 2, "위쪽이에요.")
         elif y < lip_y - 10:
-            await send_guidance(websocket, 1, "아래쪽이에요")
+            await send_guidance(websocket, 1, "아래쪽이에요.")
 
-        await asyncio.sleep(1)
+        await asyncio.sleep(wait_time)
 
-    await websocket.send_text(json.dumps({"text": "", "data": 5}))
-    print("햅틱 가이던스 완료")
+    await websocket.send_text(json.dumps({"text": "", "data": 5, "audio": tts("햅틱 가이던스 완료")}))
+    print("햅틱 가이던스 완료.")
     return time.time() - start_time, retry_count, "complete"
 
 
