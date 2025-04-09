@@ -147,7 +147,7 @@ async def get_valid_face_detection(websocket, max_retries=5):
     """
     print("[get_valid_face_detection] 인식 재시도 중...")
     for attempt in range(max_retries):
-        # await websocket.send_text(json.dumps({"text": "False", "data": ""}))
+        await websocket.send_text(json.dumps({"text": "False", "data": ""}))
         image_path = await receive_and_save_image(websocket)
 
         x, y = detect_lipstick(image_path)
